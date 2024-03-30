@@ -3,11 +3,12 @@ import { StyleSheet, Text, View } from "react-native";
 import { addDoc, collection, getDocs } from "firebase/firestore";
 import { db, GROUPS_REF, USERS_REF } from "./firebase/Config";
 
+import FrontPage from "./screens/FrontPage";
+
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <FrontPage />
     </View>
   );
 }
