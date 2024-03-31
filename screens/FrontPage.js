@@ -24,12 +24,12 @@ export default function FrontPage() {
             <Pressable
               style={styles.button}
               onPress={() => setCurrentView("register")}>
-              <Text style={styles.buttonText}>Register</Text>
+              <Text style={styles.buttonText}>Sign up</Text>
             </Pressable>
           </View>
         );
     }
   };
 
-  return <View style={{}}>{renderView()}</View>;
+  return <View>{renderView()}</View>;
 }

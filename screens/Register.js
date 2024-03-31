@@ -4,7 +4,7 @@ import { logout, signUp } from "../components/Auth";
 import { onAuthStateChanged } from "firebase/auth";
 import styles from "../style/styles.js";
 import { auth } from "../firebase/Config";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Register({ navigation }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -65,6 +65,11 @@ export default function Register({ navigation }) {
   } else {
     return (
       <View style={styles.container}>
+        <Pressable
+          //   onPress={() => navigation.goBack()}
+          style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#000" />
+        </Pressable>
         <Text style={styles.title}>Register</Text>
         <TextInput
           style={styles.input}
@@ -94,12 +99,6 @@ export default function Register({ navigation }) {
         />
         <Pressable style={styles.button} onPress={handlePressRegister}>
           <Text style={styles.buttonText}>Register</Text>
-        </Pressable>
-        <Text style={styles.infoText}>Already have an account? </Text>
-        <Pressable
-          style={styles.buttonStyle}
-          onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.buttonText}>Login</Text>
         </Pressable>
       </View>
     );

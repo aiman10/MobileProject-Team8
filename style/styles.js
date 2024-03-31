@@ -57,4 +57,10 @@ export default StyleSheet.create({
     width: width * 0.8,
     alignItems: "center",
   },
+  backButton: {
+    position: "absolute",
+    top: 25,
+    left: 1,
+    zIndex: 10,
+  },
 });
