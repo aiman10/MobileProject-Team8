@@ -47,6 +47,24 @@ export default StyleSheet.create({
     color: "#333",
     paddingVertical: 10,
   },
+  groupButtonStyle: {
+    backgroundColor: "#007bff",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    margin: 10,
+    elevation: 3,
+    flexDirection: "row", // Add this line to align icon and text
+    alignItems: "center", // Add this line to center them vertically
+    justifyContent: "center", // Add this line to center them horizontally
+  },
+  groupButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8, // Add some space between the icon and text
+  },
+
   buttonStyle: {
     backgroundColor: "#28a745",
     paddingVertical: 12,

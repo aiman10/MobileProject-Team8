@@ -33,6 +33,7 @@ export default function Login({ navigation }) {
         if (user) {
           setEmail("");
           setPassword("");
+          navigation.navigate("Groups");
         }
       });
     }
@@ -45,7 +46,6 @@ export default function Login({ navigation }) {
   if (isLoggedIn) {
     return (
       <View style={styles.container}>
-        <Groups />
         <Pressable style={styles.button} onPress={handlePressLogout}>
           <Text style={styles.buttonText}>Logout</Text>
         </Pressable>
@@ -54,11 +54,7 @@ export default function Login({ navigation }) {
   } else {
     return (
       <View style={styles.container}>
-        <Pressable
-          //   onPress={() => navigation.goBack()}
-          style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
-        </Pressable>
+        <Pressable style={styles.backButton}></Pressable>
         <Text style={styles.infoText}>Login</Text>
         <TextInput
           style={styles.input}

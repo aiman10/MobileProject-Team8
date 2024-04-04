@@ -43,7 +43,7 @@ export default function Register({ navigation }) {
           setEmail("");
           setPassword("");
           setConfirmPassword("");
-          navigation.navigate("Todos");
+          navigation.navigate("Groups");
         }
       });
     }
@@ -56,7 +56,6 @@ export default function Register({ navigation }) {
   if (isLoggedIn) {
     return (
       <View style={styles.container}>
-        <Groups />
         <Pressable style={styles.button} onPress={handlePressLogout}>
           <Text style={styles.buttonText}>Logout</Text>
         </Pressable>
@@ -67,9 +66,7 @@ export default function Register({ navigation }) {
       <View style={styles.container}>
         <Pressable
           //   onPress={() => navigation.goBack()}
-          style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
-        </Pressable>
+          style={styles.backButton}></Pressable>
         <Text style={styles.title}>Register</Text>
         <TextInput
           style={styles.input}

@@ -27,12 +27,20 @@ import {
 } from "firebase/firestore";
 import { ActivityIndicator, Modal, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
+import { createStackNavigator } from "@react-navigation/stack";
+import GroupDetails from "./GroupDetails.js";
+import { useNavigation } from "@react-navigation/native";
 
-export default function Groups() {
+export default function Groups({}) {
   const [groupName, setGroupName] = useState("");
   const [userGroups, setUserGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const goToGroupDetails = (groupId) => {
+    navigation.navigate("GroupDetails", { groupId: groupId });
+  };
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchUserGroups();
@@ -92,7 +100,14 @@ export default function Groups() {
           data={userGroups}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <Pressable
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed ? "rgb(210, 230, 255)" : "white",
+                },
+                styles.card,
+              ]}
+              onPress={() => goToGroupDetails(item.id)}>
               <Text>{item.name}</Text>
               <Ionicons
                 name="chevron-forward"
@@ -100,7 +115,7 @@ export default function Groups() {
                 color="#000"
                 style={styles.iconStyle}
               />
-            </View>
+            </Pressable>
           )}
           ListEmptyComponent={() => (
             <Text style={styles.infoText}>No Groups yet</Text>
@@ -108,7 +123,15 @@ export default function Groups() {
           contentContainerStyle={{ paddingBottom: 20 }}
         />
       )}
-      <Button title="Add Group" onPress={() => setIsModalVisible(true)} />
+      <TouchableOpacity
+        style={styles.groupButtonStyle}
+        onPress={() => setIsModalVisible(true)}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <AntDesign name="addusergroup" size={24} color="white" />
+          <Text style={styles.groupButtonText}>Add new group</Text>
+        </View>
+      </TouchableOpacity>
+
       <Modal
         animationType="slide"
         transparent={true}

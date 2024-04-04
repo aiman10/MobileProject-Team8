@@ -1,16 +1,36 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
-import { addDoc, collection, getDocs } from "firebase/firestore";
-import { db, GROUPS_REF, USERS_REF } from "./firebase/Config";
-import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
-import styles from "./style/styles";
+import { createStackNavigator } from "@react-navigation/stack";
+import Groups from "./screens/Groups";
+import GroupDetails from "./screens/GroupDetails";
 import FrontPage from "./screens/FrontPage";
+import Register from "./screens/Register";
+import Login from "./screens/Login";
+
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <FrontPage />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="FrontPage">
+        <Stack.Screen
+          name="FrontPage"
+          component={FrontPage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Groups"
+          component={Groups}
+          options={({ route }) => ({
+            headerLeft: () => {
+              const isLoggedIn = route.params?.isLoggedIn;
+              return isLoggedIn ? null : <></>;
+            },
+          })}
+        />
+        <Stack.Screen name="GroupDetails" component={GroupDetails} />
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Register" component={Register} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
