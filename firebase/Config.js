@@ -29,3 +29,4 @@ export { auth };
 export const db = getFirestore(app);
 export const USERS_REF = "users";
 export const GROUPS_REF = "groups";
+export const USER_GROUPS_REF = "user_groups";

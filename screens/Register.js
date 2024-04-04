@@ -56,7 +56,7 @@ export default function Register({ navigation }) {
   if (isLoggedIn) {
     return (
       <View style={styles.container}>
-        <Text>You are logged in</Text>
+        <Groups />
         <Pressable style={styles.button} onPress={handlePressLogout}>
           <Text style={styles.buttonText}>Logout</Text>
         </Pressable>

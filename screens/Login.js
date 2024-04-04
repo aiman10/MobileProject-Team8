@@ -5,6 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import styles from "../style/styles.js";
 import { auth } from "../firebase/Config";
 import { Ionicons } from "@expo/vector-icons";
+import Groups from "./Groups.js";
 
 export default function Login({ navigation }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -32,7 +33,6 @@ export default function Login({ navigation }) {
         if (user) {
           setEmail("");
           setPassword("");
-          //navigation.navigate(""); // TODO Add the name of the screen you want to navigate to
         }
       });
     }
@@ -45,7 +45,7 @@ export default function Login({ navigation }) {
   if (isLoggedIn) {
     return (
       <View style={styles.container}>
-        <Text>You are logged in</Text>
+        <Groups />
         <Pressable style={styles.button} onPress={handlePressLogout}>
           <Text style={styles.buttonText}>Logout</Text>
         </Pressable>
@@ -59,7 +59,7 @@ export default function Login({ navigation }) {
           style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="#000" />
         </Pressable>
-        <Text style={styles.text}>Login</Text>
+        <Text style={styles.infoText}>Login</Text>
         <TextInput
           style={styles.input}
           placeholder="Email"
