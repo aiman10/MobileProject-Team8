@@ -25,14 +25,29 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import { ActivityIndicator, Modal, TouchableOpacity } from "react-native";
+import {
+  ActivityIndicator,
+  Modal,
+  TouchableOpacity,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import { createStackNavigator } from "@react-navigation/stack";
 import GroupDetails from "./GroupDetails.js";
 import { useNavigation } from "@react-navigation/native";
+import { logout, signIn } from "../components/Auth";
 
-export default function Groups({}) {
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+export default function Groups({ naviagate }) {
   const [groupName, setGroupName] = useState("");
   const [userGroups, setUserGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -80,14 +95,23 @@ export default function Groups({}) {
         groupId: groupRef,
       });
 
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+
       //Alert.alert("Group created successfully");
-      setGroupName("");
+
       fetchUserGroups();
+      setGroupName("");
       setIsModalVisible(false);
     } catch (error) {
       // Alert.alert("Error creating group");
       console.error("Error creating group", error);
     }
+  };
+
+  //temporary logout function
+  const handlePressLogout = () => {
+    logout();
+    navigation.navigate("Login");
   };
 
   return (
@@ -151,6 +175,9 @@ export default function Groups({}) {
           </View>
         </View>
       </Modal>
+      <Pressable style={styles.button} onPress={handlePressLogout}>
+        <Text style={styles.buttonText}>Logout</Text>
+      </Pressable>
     </View>
   );
 }
