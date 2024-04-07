@@ -5,7 +5,8 @@ import GroupDetails from "./screens/GroupDetails";
 import FrontPage from "./screens/FrontPage";
 import Register from "./screens/Register";
 import Login from "./screens/Login";
-
+import { logout } from "./components/Auth";
+import DropdownMenu from "./components/DropdownMenu";
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -25,6 +26,14 @@ export default function App() {
               const isLoggedIn = route.params?.isLoggedIn;
               return isLoggedIn ? null : <></>;
             },
+            // headerRight: () => (
+            //   <DropdownMenu
+            //     onLogout={() => {
+            //       logout();
+            //       navigation.replace("Login");
+            //     }}
+            //   />
+            // ),
           })}
         />
         <Stack.Screen name="GroupDetails" component={GroupDetails} />
