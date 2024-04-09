@@ -48,7 +48,7 @@ export default StyleSheet.create({
     paddingVertical: 10,
   },
   groupButtonStyle: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#28A745",
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 5,
@@ -106,31 +106,29 @@ export default StyleSheet.create({
 
   centeredView: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22,
+    justifyContent: "flex-start",
+    alignItems: "stretch",
   },
+
+  //Modal
   modalView: {
-    margin: 20,
+    flex: 1,
     backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    paddingTop: 35,
+    paddingBottom: 35,
+    paddingLeft: 20,
+    paddingRight: 20,
+    justifyContent: "flex-start", // Align content to start
+    alignItems: "stretch", // Stretch items to fill
   },
+
   modalText: {
     marginBottom: 15,
     textAlign: "center",
   },
   modalInput: {
-    width: width * 0.8,
+    alignSelf: "center", // Center the input fields
+    width: "100%", // Use full width
     backgroundColor: "#fff",
     borderRadius: 5,
     padding: 15,
@@ -138,5 +136,36 @@ export default StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#ccc",
+  },
+  topButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%", // Ensure it spans the full width
+    marginBottom: 20, // Space between buttons and the next element
+  },
+
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  //----------------
+  modalButton: {
+    backgroundColor: "#28A745",
+    borderRadius: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    marginVertical: 5,
+    width: width * 0.5,
+    alignItems: "center",
+  },
+  modalButton2: {
+    borderRadius: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 5,
+    marginVertical: 5,
+    width: (width * 0.5) / 2 - 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

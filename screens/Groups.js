@@ -56,6 +56,9 @@ export default function Groups({ naviagate }) {
     navigation.navigate("GroupDetails", { groupId: groupId });
   };
   const navigation = useNavigation();
+  const [memberUsernames, setMemberUsernames] = useState([]);
+  const [newMemberUsername, setNewMemberUsername] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
 
   useEffect(() => {
     fetchUserGroups();
@@ -85,33 +88,61 @@ export default function Groups({ naviagate }) {
   };
 
   const createGroup = async () => {
-    try {
-      const groupRef = await addDoc(collection(db, GROUPS_REF), {
-        name: groupName,
-      });
+    if (groupName.trim() === "") {
+      Alert.alert("Please enter a group name");
+      return;
+    } else {
+      try {
+        const groupRef = await addDoc(collection(db, GROUPS_REF), {
+          name: groupName,
+          members: [auth.currentUser.uid, ...memberUsernames],
+          description: groupDescription,
+        });
 
-      await addDoc(collection(db, USER_GROUPS_REF), {
-        userId: auth.currentUser.uid,
-        groupId: groupRef,
-      });
+        await addDoc(collection(db, USER_GROUPS_REF), {
+          userId: auth.currentUser.uid,
+          groupId: groupRef,
+        });
 
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
 
-      //Alert.alert("Group created successfully");
-
-      fetchUserGroups();
-      setGroupName("");
-      setIsModalVisible(false);
-    } catch (error) {
-      // Alert.alert("Error creating group");
-      console.error("Error creating group", error);
+        //Alert.alert("Group created successfully");
+        setIsModalVisible(false);
+        fetchUserGroups();
+        setMemberUsernames([]);
+        setGroupName("");
+      } catch (error) {
+        // Alert.alert("Error creating group");
+        console.error("Error creating group", error);
+      }
     }
+  };
+
+  const addMember = () => {
+    if (newMemberUsername.trim() !== "") {
+      setMemberUsernames([...memberUsernames, newMemberUsername.trim()]);
+      setNewMemberUsername("");
+    }
+  };
+
+  const removeMember = (index) => {
+    setMemberUsernames((prev) => {
+      const newMembers = [...prev];
+      newMembers.splice(index, 1);
+      return newMembers;
+    });
   };
 
   //temporary logout function
   const handlePressLogout = () => {
     logout();
     navigation.navigate("Login");
+  };
+
+  const cancelCreateGroup = () => {
+    setIsModalVisible(false);
+    setMemberUsernames([]);
+    setGroupName("");
   };
 
   return (
@@ -158,11 +189,26 @@ export default function Groups({ naviagate }) {
 
       <Modal
         animationType="slide"
-        transparent={true}
+        transparent={false}
         visible={isModalVisible}
         onRequestClose={() => setIsModalVisible(false)}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
+            <View style={styles.topButtonsContainer}>
+              <Pressable
+                style={[styles.modalButton2]}
+                onPress={cancelCreateGroup}>
+                <Text style={[styles.modalButtonText, { color: "#D2042D" }]}>
+                  Cancel
+                </Text>
+              </Pressable>
+              <Pressable style={[styles.modalButton2]} onPress={createGroup}>
+                <Text style={[styles.modalButtonText, { color: "#28A745" }]}>
+                  Create
+                </Text>
+              </Pressable>
+            </View>
+
             <Text style={styles.modalText}>Create a new group</Text>
             <TextInput
               placeholder="Group Name"
@@ -170,14 +216,45 @@ export default function Groups({ naviagate }) {
               onChangeText={setGroupName}
               style={styles.modalInput}
             />
-            <Button title="Create Group" onPress={createGroup} />
-            <Button title="Cancel" onPress={() => setIsModalVisible(false)} />
+            <TextInput
+              placeholder="Description"
+              value={groupDescription}
+              onChangeText={setGroupDescription}
+              style={styles.modalInput}
+            />
+            <TextInput
+              placeholder="Add Member"
+              value={newMemberUsername}
+              onChangeText={setNewMemberUsername}
+              style={styles.modalInput}
+            />
+
+            {memberUsernames.map((username, index) => (
+              <View
+                key={index}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginVertical: 5,
+                }}>
+                <Text style={{ marginRight: 10 }}>{username}</Text>
+                <Pressable onPress={() => removeMember(index)}>
+                  <Ionicons name="close-circle" size={24} color="red" />
+                </Pressable>
+              </View>
+            ))}
+            <Pressable
+              style={[styles.modalButton, { alignSelf: "center" }]}
+              onPress={addMember}>
+              <Text style={styles.modalButtonText}>Add Member</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
-      <Pressable style={styles.button} onPress={handlePressLogout}>
+
+      {/* <Pressable style={styles.button} onPress={handlePressLogout}>
         <Text style={styles.buttonText}>Logout</Text>
-      </Pressable>
+      </Pressable> */}
     </View>
   );
 }

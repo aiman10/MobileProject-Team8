@@ -32,6 +32,7 @@ import { AntDesign } from "@expo/vector-icons";
 export default function GroupDetails({ route, navigation }) {
   const { groupId } = route.params;
   const [groupName, setGroupName] = useState("");
+  const [members, setMembers] = useState([]);
 
   useEffect(() => {
     const fetchGroupDetails = async () => {
@@ -39,17 +40,36 @@ export default function GroupDetails({ route, navigation }) {
       const groupSnapshot = await getDoc(groupRef);
       if (groupSnapshot.exists()) {
         setGroupName(groupSnapshot.data().name);
+        setMembers(groupSnapshot.data().members);
       } else {
         Alert.alert("Group not found");
       }
     };
+
+    const getFirstUserName = async () => {
+      const userRef = doc(db, USERS_REF, members[0]);
+      const userSnapshot = await getDoc(userRef);
+      if (userSnapshot.exists()) {
+        console.log(userSnapshot.data().username);
+      }
+    };
+
     fetchGroupDetails();
   }, [groupId]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Group Details For: {groupName}</Text>
-
+      {members.length === 0 && <Text>No members in this group</Text>}
+      <FlatList
+        data={members}
+        renderItem={({ item }) => (
+          <View style={styles.groupMember}>
+            <Text>{item}</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item}
+      />
       <Pressable
         style={styles.groupButtonStyle}
         onPress={() => navigation.goBack()}>
