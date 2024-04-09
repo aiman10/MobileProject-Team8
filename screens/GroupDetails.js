@@ -60,7 +60,9 @@ export default function GroupDetails({ route, navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Group Details For: {groupName}</Text>
-      {members.length === 0 && <Text>No members in this group</Text>}
+      {(!members || members.length === 0) && (
+        <Text>No members in this group</Text>
+      )}
       <FlatList
         data={members}
         renderItem={({ item }) => (

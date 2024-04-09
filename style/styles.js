@@ -27,7 +27,7 @@ export default StyleSheet.create({
     borderColor: "#ccc",
   },
   button: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#28a745",
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 5,
@@ -36,6 +36,7 @@ export default StyleSheet.create({
     width: width * 0.8,
     alignItems: "center",
   },
+
   buttonText: {
     color: "#fff",
     fontSize: 16,
@@ -54,15 +55,15 @@ export default StyleSheet.create({
     borderRadius: 5,
     margin: 10,
     elevation: 3,
-    flexDirection: "row", // Add this line to align icon and text
-    alignItems: "center", // Add this line to center them vertically
-    justifyContent: "center", // Add this line to center them horizontally
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   groupButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-    marginLeft: 8, // Add some space between the icon and text
+    marginLeft: 8,
   },
 
   buttonStyle: {
@@ -118,8 +119,8 @@ export default StyleSheet.create({
     paddingBottom: 35,
     paddingLeft: 20,
     paddingRight: 20,
-    justifyContent: "flex-start", // Align content to start
-    alignItems: "stretch", // Stretch items to fill
+    justifyContent: "flex-start",
+    alignItems: "stretch",
   },
 
   modalText: {
@@ -127,8 +128,8 @@ export default StyleSheet.create({
     textAlign: "center",
   },
   modalInput: {
-    alignSelf: "center", // Center the input fields
-    width: "100%", // Use full width
+    alignSelf: "center",
+    width: "100%",
     backgroundColor: "#fff",
     borderRadius: 5,
     padding: 15,
@@ -140,8 +141,8 @@ export default StyleSheet.create({
   topButtonsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "100%", // Ensure it spans the full width
-    marginBottom: 20, // Space between buttons and the next element
+    width: "100%",
+    marginBottom: 20,
   },
 
   modalButtonText: {
@@ -155,8 +156,7 @@ export default StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 12,
     paddingHorizontal: 30,
-    marginVertical: 5,
-    width: width * 0.5,
+    width: width * 0.9,
     alignItems: "center",
   },
   modalButton2: {
@@ -167,5 +167,37 @@ export default StyleSheet.create({
     width: (width * 0.5) / 2 - 10,
     alignItems: "center",
     justifyContent: "center",
+  },
+  modalButton3: {
+    backgroundColor: "#28A745",
+    borderRadius: 5,
+    paddingVertical: 16,
+    width: 70,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  contactItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  contactNumber: {
+    fontSize: 14,
+  },
+  buttonClose: {
+    marginTop: 20,
+    backgroundColor: "red",
+    padding: 10,
+    elevation: 2,
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });

@@ -7,6 +7,7 @@ import Register from "./screens/Register";
 import Login from "./screens/Login";
 import { logout } from "./components/Auth";
 import DropdownMenu from "./components/DropdownMenu";
+import ContactListScreen from "./screens/ContactListScreen";
 const Stack = createStackNavigator();
 
 export default function App() {

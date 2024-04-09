@@ -39,6 +39,8 @@ import { createStackNavigator } from "@react-navigation/stack";
 import GroupDetails from "./GroupDetails.js";
 import { useNavigation } from "@react-navigation/native";
 import { logout, signIn } from "../components/Auth";
+import * as Contacts from "expo-contacts";
+import { set } from "firebase/database";
 
 if (
   Platform.OS === "android" &&
@@ -59,6 +61,9 @@ export default function Groups({ naviagate }) {
   const [memberUsernames, setMemberUsernames] = useState([]);
   const [newMemberUsername, setNewMemberUsername] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
+  const [isContactListModalVisible, setIsContactListModalVisible] =
+    useState(false);
+  const [contacts, setContacts] = useState([]);
 
   useEffect(() => {
     fetchUserGroups();
@@ -106,13 +111,11 @@ export default function Groups({ naviagate }) {
 
         LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
 
-        //Alert.alert("Group created successfully");
         setIsModalVisible(false);
         fetchUserGroups();
         setMemberUsernames([]);
         setGroupName("");
       } catch (error) {
-        // Alert.alert("Error creating group");
         console.error("Error creating group", error);
       }
     }
@@ -133,6 +136,33 @@ export default function Groups({ naviagate }) {
     });
   };
 
+  const loadContacts = async () => {
+    try {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status === "granted") {
+        const { data } = await Contacts.getContactsAsync({
+          fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+        });
+
+        if (data.length > 0) {
+          setContacts(data);
+          setIsContactListModalVisible(true);
+          setIsModalVisible(false);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const selectContact = (contact) => {
+    if (contact.name) {
+      setMemberUsernames([...memberUsernames, contact.name]);
+    }
+    setIsContactListModalVisible(false);
+    setIsModalVisible(true);
+  };
+
   //temporary logout function
   const handlePressLogout = () => {
     logout();
@@ -147,7 +177,7 @@ export default function Groups({ naviagate }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Groups</Text>
+      {/* <Text style={styles.title}>Groups</Text> */}
       {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
@@ -209,7 +239,7 @@ export default function Groups({ naviagate }) {
               </Pressable>
             </View>
 
-            <Text style={styles.modalText}>Create a new group</Text>
+            <Text style={styles.modalText}>New Group</Text>
             <TextInput
               placeholder="Group Name"
               value={groupName}
@@ -222,12 +252,25 @@ export default function Groups({ naviagate }) {
               onChangeText={setGroupDescription}
               style={styles.modalInput}
             />
-            <TextInput
-              placeholder="Add Member"
-              value={newMemberUsername}
-              onChangeText={setNewMemberUsername}
-              style={styles.modalInput}
-            />
+            <Text style={[styles.modalText, { marginTop: 15 }]}>Members</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}>
+              <TextInput
+                placeholder="Add Member"
+                value={newMemberUsername}
+                onChangeText={setNewMemberUsername}
+                style={[styles.modalInput, { flex: 1, marginRight: 10 }]} // Adjust the style to accommodate the button
+              />
+              <Pressable
+                style={[styles.modalButton3, { paddingHorizontal: 15 }]} // Adjust the button style for better fit
+                onPress={addMember}>
+                <Text style={styles.modalButtonText}>Add</Text>
+              </Pressable>
+            </View>
 
             {memberUsernames.map((username, index) => (
               <View
@@ -243,18 +286,53 @@ export default function Groups({ naviagate }) {
                 </Pressable>
               </View>
             ))}
+
             <Pressable
               style={[styles.modalButton, { alignSelf: "center" }]}
-              onPress={addMember}>
-              <Text style={styles.modalButtonText}>Add Member</Text>
+              onPress={loadContacts}>
+              <Text style={styles.modalButtonText}>Import Contacts</Text>
             </Pressable>
           </View>
         </View>
       </Modal>
 
-      {/* <Pressable style={styles.button} onPress={handlePressLogout}>
+      <Pressable style={styles.button} onPress={handlePressLogout}>
         <Text style={styles.buttonText}>Logout</Text>
-      </Pressable> */}
+      </Pressable>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isContactListModalVisible}
+        onRequestClose={() => setIsContactListModalVisible(false)}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <FlatList
+              data={contacts}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <Pressable
+                  onPress={() => selectContact(item)}
+                  style={styles.contactItem}>
+                  <Text style={styles.contactName}>{item.name}</Text>
+                  {item.phoneNumbers && item.phoneNumbers.length > 0 && (
+                    <Text style={styles.contactNumber}>
+                      {item.phoneNumbers[0].number}
+                    </Text>
+                  )}
+                </Pressable>
+              )}
+            />
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => {
+                setIsContactListModalVisible(false);
+                setIsModalVisible(true);
+              }}>
+              <Text style={styles.textStyle}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
