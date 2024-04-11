@@ -1,34 +1,54 @@
 import React, { useState } from "react";
-import { View, Modal, Text, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Modal, View, Text, Pressable, StyleSheet } from "react-native";
 
-const DropdownMenu = ({ onLogout }) => {
-  const [menuVisible, setMenuVisible] = useState(false);
-
+const DropdownMenu = ({ isVisible, onClose, menuOptions }) => {
   return (
-    <View>
-      <Pressable onPress={() => setMenuVisible(true)}>
-        <Ionicons name="ellipsis-vertical" size={20} color="black" />
-      </Pressable>
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={menuVisible}
-        onRequestClose={() => setMenuVisible(false)}>
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setMenuVisible(false)}
-        />
-        <View style={styles.dropdownMenu}>
-          <Pressable
-            onPress={() => {
-              onLogout();
-              setMenuVisible(false);
-            }}>
-            <Text style={styles.dropdownItem}>Logout</Text>
-          </Pressable>
+    <Modal
+      visible={isVisible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}>
+      <Pressable style={styles.modalOverlay} onPress={onClose}>
+        <View style={styles.modalContent}>
+          {menuOptions.map((option, index) => (
+            <Pressable key={index} onPress={option.onPress}>
+              <Text style={styles.menuItem}>{option.label}</Text>
+            </Pressable>
+          ))}
         </View>
-      </Modal>
-    </View>
+      </Pressable>
+    </Modal>
   );
 };
+
+export default DropdownMenu;
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    backgroundColor: "transparent",
+  },
+  modalContent: {
+    marginTop: 45,
+    marginRight: 10,
+    width: 150,
+    backgroundColor: "white",
+    borderRadius: 5,
+    padding: 10,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+
+    elevation: 5,
+  },
+  menuItem: {
+    marginVertical: 10,
+  },
+});

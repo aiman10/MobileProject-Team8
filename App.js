@@ -5,12 +5,15 @@ import GroupDetails from "./screens/GroupDetails";
 import FrontPage from "./screens/FrontPage";
 import Register from "./screens/Register";
 import Login from "./screens/Login";
-import { logout } from "./components/Auth";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable } from "react-native";
+import { useState } from "react";
 import DropdownMenu from "./components/DropdownMenu";
-import ContactListScreen from "./screens/ContactListScreen";
+import { logout, signIn } from "./components/Auth";
+
 const Stack = createStackNavigator();
 
-export default function App() {
+export default function App({}) {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="FrontPage">
@@ -19,24 +22,8 @@ export default function App() {
           component={FrontPage}
           options={{ headerShown: false }}
         />
-        <Stack.Screen
-          name="Groups"
-          component={Groups}
-          options={({ route }) => ({
-            headerLeft: () => {
-              const isLoggedIn = route.params?.isLoggedIn;
-              return isLoggedIn ? null : <></>;
-            },
-            // headerRight: () => (
-            //   <DropdownMenu
-            //     onLogout={() => {
-            //       logout();
-            //       navigation.replace("Login");
-            //     }}
-            //   />
-            // ),
-          })}
-        />
+        <Stack.Screen name="Groups" component={Groups} />
+
         <Stack.Screen name="GroupDetails" component={GroupDetails} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />

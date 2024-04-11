@@ -41,6 +41,7 @@ import { useNavigation } from "@react-navigation/native";
 import { logout, signIn } from "../components/Auth";
 import * as Contacts from "expo-contacts";
 import { set } from "firebase/database";
+import DropdownMenu from "../components/DropdownMenu.js";
 
 if (
   Platform.OS === "android" &&
@@ -64,10 +65,37 @@ export default function Groups({ naviagate }) {
   const [isContactListModalVisible, setIsContactListModalVisible] =
     useState(false);
   const [contacts, setContacts] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const menuOptions = [
+    {
+      label: "Logout",
+      onPress: () => handlePressLogout(),
+    },
+  ];
 
   useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <>
+          <Pressable onPress={() => setModalVisible(true)}>
+            <Ionicons
+              name="settings"
+              size={24}
+              color="black"
+              style={{ marginRight: 15 }}
+            />
+          </Pressable>
+          <DropdownMenu
+            isVisible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            menuOptions={menuOptions}
+          />
+        </>
+      ),
+    });
+
     fetchUserGroups();
-  }, []);
+  }, [navigation, modalVisible]);
 
   const fetchUserGroups = async () => {
     //setIsLoading(true);
@@ -163,10 +191,9 @@ export default function Groups({ naviagate }) {
     setIsModalVisible(true);
   };
 
-  //temporary logout function
   const handlePressLogout = () => {
     logout();
-    navigation.navigate("Login");
+    navigation.navigate("FrontPage");
   };
 
   const cancelCreateGroup = () => {
@@ -177,7 +204,6 @@ export default function Groups({ naviagate }) {
 
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.title}>Groups</Text> */}
       {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
@@ -263,10 +289,10 @@ export default function Groups({ naviagate }) {
                 placeholder="Add Member"
                 value={newMemberUsername}
                 onChangeText={setNewMemberUsername}
-                style={[styles.modalInput, { flex: 1, marginRight: 10 }]} // Adjust the style to accommodate the button
+                style={[styles.modalInput, { flex: 1, marginRight: 10 }]}
               />
               <Pressable
-                style={[styles.modalButton3, { paddingHorizontal: 15 }]} // Adjust the button style for better fit
+                style={[styles.modalButton3, { paddingHorizontal: 15 }]}
                 onPress={addMember}>
                 <Text style={styles.modalButtonText}>Add</Text>
               </Pressable>
@@ -296,9 +322,6 @@ export default function Groups({ naviagate }) {
         </View>
       </Modal>
 
-      <Pressable style={styles.button} onPress={handlePressLogout}>
-        <Text style={styles.buttonText}>Logout</Text>
-      </Pressable>
       <Modal
         animationType="slide"
         transparent={true}

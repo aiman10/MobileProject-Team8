@@ -28,11 +28,13 @@ import {
 import { ActivityIndicator, Modal, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
+import DropdownMenu from "../components/DropdownMenu.js";
 
 export default function GroupDetails({ route, navigation }) {
   const { groupId } = route.params;
   const [groupName, setGroupName] = useState("");
   const [members, setMembers] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchGroupDetails = async () => {
@@ -54,8 +56,37 @@ export default function GroupDetails({ route, navigation }) {
       }
     };
 
+    const menuOptions = [
+      {
+        label: "Delete Group",
+        onPress: () => {
+          console.log("Delete Group");
+        },
+      },
+    ];
+
+    navigation.setOptions({
+      headerRight: () => (
+        <>
+          <Pressable onPress={() => setModalVisible(true)}>
+            <Ionicons
+              name="settings"
+              size={24}
+              color="black"
+              style={{ marginRight: 15 }}
+            />
+          </Pressable>
+          <DropdownMenu
+            isVisible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            menuOptions={menuOptions}
+          />
+        </>
+      ),
+    });
+
     fetchGroupDetails();
-  }, [groupId]);
+  }, [navigation, modalVisible, groupId]);
 
   return (
     <View style={styles.container}>
@@ -72,12 +103,6 @@ export default function GroupDetails({ route, navigation }) {
         )}
         keyExtractor={(item) => item}
       />
-      <Pressable
-        style={styles.groupButtonStyle}
-        onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={20} color="white" />
-        <Text style={styles.buttonText}>Back to Groups</Text>
-      </Pressable>
     </View>
   );
 }
