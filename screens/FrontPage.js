@@ -1,10 +1,12 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Image } from "react-native";
+
 import styles from "../style/styles";
 
 export default function FrontPage({ navigation }) {
   return (
     <View style={styles.container}>
+      <Image source={require("../assets/logo.png")} style={styles.logo} />
       <Pressable
         style={styles.button}
         onPress={() => navigation.navigate("Login")}>

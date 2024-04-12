@@ -26,6 +26,14 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
   },
+  logo: {
+    width: 200,
+    height: 200,
+  },
+  gif: {
+    width: 200,
+    height: 200,
+  },
   button: {
     backgroundColor: "#28a745",
     paddingVertical: 12,

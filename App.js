@@ -22,7 +22,14 @@ export default function App({}) {
           component={FrontPage}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="Groups" component={Groups} />
+        <Stack.Screen
+          name="Groups"
+          component={Groups}
+          options={{
+            headerLeft: () => null,
+            title: "Groups",
+          }}
+        />
 
         <Stack.Screen name="GroupDetails" component={GroupDetails} />
         <Stack.Screen name="Login" component={Login} />

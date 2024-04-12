@@ -24,6 +24,7 @@ import {
   addDoc,
   doc,
   getDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { ActivityIndicator, Modal, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,36 +36,64 @@ export default function GroupDetails({ route, navigation }) {
   const [groupName, setGroupName] = useState("");
   const [members, setMembers] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const menuOptions = [
+    {
+      label: "Delete Group",
+      onPress: () => {
+        Alert.alert(
+          "Delete Group",
+          "Are you sure you want to delete this group?",
+          [
+            {
+              text: "Cancel",
+              onPress: () => setModalVisible(false),
+            },
+            {
+              text: "Delete",
+              onPress: () => {
+                deleteGroup();
+              },
+            },
+          ]
+        );
+      },
+    },
+  ];
+
+  const fetchGroupDetails = async () => {
+    const groupRef = doc(db, GROUPS_REF, groupId);
+    const groupSnapshot = await getDoc(groupRef);
+    if (groupSnapshot.exists()) {
+      setGroupName(groupSnapshot.data().name);
+      setMembers(groupSnapshot.data().members);
+    } else {
+      Alert.alert("Group not found");
+    }
+  };
+
+  const deleteGroup = async () => {
+    const groupRef = doc(db, GROUPS_REF, groupId);
+    await deleteDoc(groupRef);
+    const userGroupQuery = query(
+      collection(db, USER_GROUPS_REF),
+      where("groupId", "==", groupId)
+    );
+    const userGroupSnapshot = await getDocs(userGroupQuery);
+    userGroupSnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+    navigation.navigate("Groups");
+  };
+
+  const getFirstUserName = async () => {
+    const userRef = doc(db, USERS_REF, members[0]);
+    const userSnapshot = await getDoc(userRef);
+    if (userSnapshot.exists()) {
+      console.log(userSnapshot.data().username);
+    }
+  };
 
   useEffect(() => {
-    const fetchGroupDetails = async () => {
-      const groupRef = doc(db, GROUPS_REF, groupId);
-      const groupSnapshot = await getDoc(groupRef);
-      if (groupSnapshot.exists()) {
-        setGroupName(groupSnapshot.data().name);
-        setMembers(groupSnapshot.data().members);
-      } else {
-        Alert.alert("Group not found");
-      }
-    };
-
-    const getFirstUserName = async () => {
-      const userRef = doc(db, USERS_REF, members[0]);
-      const userSnapshot = await getDoc(userRef);
-      if (userSnapshot.exists()) {
-        console.log(userSnapshot.data().username);
-      }
-    };
-
-    const menuOptions = [
-      {
-        label: "Delete Group",
-        onPress: () => {
-          console.log("Delete Group");
-        },
-      },
-    ];
-
     navigation.setOptions({
       headerRight: () => (
         <>

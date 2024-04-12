@@ -37,7 +37,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import { createStackNavigator } from "@react-navigation/stack";
 import GroupDetails from "./GroupDetails.js";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { logout, signIn } from "../components/Auth";
 import * as Contacts from "expo-contacts";
 import { set } from "firebase/database";
@@ -73,7 +73,14 @@ export default function Groups({ naviagate }) {
     },
   ];
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserGroups();
+    }, [])
+  );
+
   useEffect(() => {
+    fetchUserGroups();
     navigation.setOptions({
       headerRight: () => (
         <>
@@ -93,31 +100,33 @@ export default function Groups({ naviagate }) {
         </>
       ),
     });
-
-    fetchUserGroups();
   }, [navigation, modalVisible]);
 
   const fetchUserGroups = async () => {
     //setIsLoading(true);
-    const q = query(
-      collection(db, USER_GROUPS_REF),
-      where("userId", "==", auth.currentUser.uid)
-    );
-    const querySnapshot = await getDocs(q);
-    const groupFetchPromises = querySnapshot.docs.map(async (docSnapshot) => {
-      const groupRef = docSnapshot.data().groupId;
-      const groupSnapshot = await getDoc(groupRef);
-      if (groupSnapshot.exists()) {
-        return { id: groupSnapshot.id, ...groupSnapshot.data() };
-      } else {
-        console.error("Group not found");
-        return null;
-      }
-    });
+    try {
+      const q = query(
+        collection(db, USER_GROUPS_REF),
+        where("userId", "==", auth.currentUser.uid)
+      );
+      const querySnapshot = await getDocs(q);
+      const groupFetchPromises = querySnapshot.docs.map(async (docSnapshot) => {
+        const groupRef = docSnapshot.data().groupId;
+        const groupSnapshot = await getDoc(groupRef);
+        if (groupSnapshot.exists()) {
+          return { id: groupSnapshot.id, ...groupSnapshot.data() };
+        } else {
+          return null;
+        }
+      });
 
-    const groups = (await Promise.all(groupFetchPromises)).filter(Boolean);
-    setUserGroups(groups);
-    setIsLoading(false);
+      let groups = (await Promise.all(groupFetchPromises)).filter(Boolean);
+      groups = groups.sort((a, b) => a.id.localeCompare(b.id));
+      setUserGroups(groups);
+      setIsLoading(false);
+    } catch (error) {
+      return null;
+    }
   };
 
   const createGroup = async () => {
