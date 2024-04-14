@@ -42,7 +42,8 @@ import { logout, signIn } from "../components/Auth";
 import * as Contacts from "expo-contacts";
 import { set } from "firebase/database";
 import DropdownMenu from "../components/DropdownMenu.js";
-
+import { Picker } from "@react-native-picker/picker";
+import axios from "axios";
 if (
   Platform.OS === "android" &&
   UIManager.setLayoutAnimationEnabledExperimental
@@ -66,6 +67,9 @@ export default function Groups({ naviagate }) {
     useState(false);
   const [contacts, setContacts] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [currency, setCurrency] = useState("EUR");
+  const [currencies, setCurrencies] = useState([]);
+
   const menuOptions = [
     {
       label: "Logout",
@@ -81,6 +85,7 @@ export default function Groups({ naviagate }) {
 
   useEffect(() => {
     fetchUserGroups();
+    fetchCurrencies();
     navigation.setOptions({
       headerRight: () => (
         <>
@@ -139,6 +144,8 @@ export default function Groups({ naviagate }) {
           name: groupName,
           members: [auth.currentUser.uid, ...memberUsernames],
           description: groupDescription,
+          //set selected currency
+          currency: currency,
         });
 
         await addDoc(collection(db, USER_GROUPS_REF), {
@@ -155,6 +162,23 @@ export default function Groups({ naviagate }) {
       } catch (error) {
         console.error("Error creating group", error);
       }
+    }
+  };
+
+  const fetchCurrencies = async () => {
+    try {
+      const response = await axios.get(
+        "https://v6.exchangerate-api.com/v6/62b142d42c6ca5a45e7944f1/codes"
+      );
+      if (response.data && response.data.supported_codes) {
+        const currencyData = response.data.supported_codes.map((code) => ({
+          label: `${code[0]} - ${code[1]}`,
+          value: code[0],
+        }));
+        setCurrencies(currencyData);
+      }
+    } catch (error) {
+      console.error("Error fetching currencies", error);
     }
   };
 
@@ -244,12 +268,9 @@ export default function Groups({ naviagate }) {
         />
       )}
       <TouchableOpacity
-        style={styles.groupButtonStyle}
+        style={styles.roundButton}
         onPress={() => setIsModalVisible(true)}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <AntDesign name="addusergroup" size={24} color="white" />
-          <Text style={styles.groupButtonText}>Add new group</Text>
-        </View>
+        <AntDesign name="plus" size={24} color="white" />
       </TouchableOpacity>
 
       <Modal
@@ -327,6 +348,31 @@ export default function Groups({ naviagate }) {
               onPress={loadContacts}>
               <Text style={styles.modalButtonText}>Import Contacts</Text>
             </Pressable>
+
+            <View
+              style={{
+                borderTopWidth: 1,
+                borderTopColor: "black",
+                marginTop: 50,
+              }}>
+              <Picker
+                selectedValue={currency}
+                style={{
+                  height: 50,
+                  width: "100%",
+                }}
+                onValueChange={(itemValue, itemIndex) =>
+                  setCurrency(itemValue)
+                }>
+                {currencies.map((currency, index) => (
+                  <Picker.Item
+                    key={index}
+                    label={currency.label}
+                    value={currency.value}
+                  />
+                ))}
+              </Picker>
+            </View>
           </View>
         </View>
       </Modal>

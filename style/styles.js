@@ -74,6 +74,24 @@ export default StyleSheet.create({
     marginLeft: 8,
   },
 
+  roundButton: {
+    width: 60,
+    height: 60,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 30,
+    backgroundColor: "#28a745",
+    position: "absolute",
+    bottom: 10,
+    left: "50%",
+    marginLeft: -10,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+  },
+
   buttonStyle: {
     backgroundColor: "#28a745",
     paddingVertical: 12,
@@ -157,6 +175,17 @@ export default StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+
+  pickerTrigger: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "lightgrey",
+    borderRadius: 4,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
   },
   //----------------
   modalButton: {
