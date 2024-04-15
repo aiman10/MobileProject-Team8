@@ -237,4 +237,26 @@ export default StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
+
+  //Expenses
+  memberSelect: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+
+  membersContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginVertical: 10,
+    paddingHorizontal: 10,
+  },
+  membersText: {
+    fontSize: 16,
+    color: "#333",
+  },
 });

@@ -84,6 +84,7 @@ export default function Groups({ naviagate }) {
   );
 
   useEffect(() => {
+    getCurrentUserName();
     fetchUserGroups();
     fetchCurrencies();
     navigation.setOptions({
@@ -134,20 +135,37 @@ export default function Groups({ naviagate }) {
     }
   };
 
+  const getCurrentUserName = async () => {
+    try {
+      const userRef = doc(db, USERS_REF, auth.currentUser.uid);
+      const userSnapshot = await getDoc(userRef);
+      if (userSnapshot.exists()) {
+        //console.log(userSnapshot.data().username);
+        return userSnapshot.data().username;
+      }
+    } catch (error) {
+      console.error("Error fetching user", error);
+    }
+  };
+
   const createGroup = async () => {
     if (groupName.trim() === "") {
       Alert.alert("Please enter a group name");
       return;
     } else {
       try {
+        const currentUserName = await getCurrentUserName();
+
+        if (!currentUserName) {
+          console.error("Error fetching current user");
+        }
+
         const groupRef = await addDoc(collection(db, GROUPS_REF), {
           name: groupName,
-          members: [auth.currentUser.uid, ...memberUsernames],
+          members: [currentUserName, ...memberUsernames],
           description: groupDescription,
-          //set selected currency
           currency: currency,
         });
-
         await addDoc(collection(db, USER_GROUPS_REF), {
           userId: auth.currentUser.uid,
           groupId: groupRef,

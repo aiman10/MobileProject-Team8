@@ -30,3 +30,5 @@ export const db = getFirestore(app);
 export const USERS_REF = "users";
 export const GROUPS_REF = "groups";
 export const USER_GROUPS_REF = "user_groups";
+export const EXPENSES_REF = "expenses";
+export const GROUP_EXPENSES_REF = "group_expenses";
