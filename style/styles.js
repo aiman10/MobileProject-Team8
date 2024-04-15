@@ -150,7 +150,8 @@ export default StyleSheet.create({
   },
 
   modalText: {
-    marginBottom: 15,
+    marginTop: 15,
+    marginBottom: 5,
     textAlign: "center",
   },
   modalInput: {
@@ -258,5 +259,42 @@ export default StyleSheet.create({
   membersText: {
     fontSize: 16,
     color: "#333",
+  },
+
+  expenseItem: {
+    backgroundColor: "#f9f9f9", // Light grey background
+    borderTopColor: "#dedede", // Light grey border
+    borderBottomColor: "#dedede", // Light grey border
+    borderTopWidth: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  expenseTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333", // Dark text color
+  },
+  paidByText: {
+    fontSize: 14,
+    color: "#666", // Medium text color
+    position: "absolute",
+    bottom: 0,
+    left: 15,
+  },
+  expenseAmount: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#007bff", // Your primary color
+  },
+  expenseDate: {
+    fontSize: 14,
+    color: "#666", // Medium text color
+    position: "absolute",
+    right: 15,
+    bottom: 0,
   },
 });

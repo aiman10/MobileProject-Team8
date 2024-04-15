@@ -30,6 +30,8 @@ import { ActivityIndicator, Modal, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import DropdownMenu from "../components/DropdownMenu.js";
+import { Picker } from "@react-native-picker/picker";
+import { Categories } from "../constants/Categories.js";
 import { set } from "firebase/database";
 
 export default function GroupDetails({ route, navigation }) {
@@ -41,7 +43,8 @@ export default function GroupDetails({ route, navigation }) {
   const [expenseTitle, setExpenseTitle] = useState("");
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [memberUsernames, setMemberUsernames] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [expenses, setExpenses] = useState([]);
 
   const menuOptions = [
     {
@@ -92,11 +95,17 @@ export default function GroupDetails({ route, navigation }) {
     navigation.navigate("Groups");
   };
 
-  const getUsername = async (userId) => {
-    const userRef = doc(db, USERS_REF, userId);
-    const userSnapshot = await getDoc(userRef);
-    console.log(userSnapshot.data().name);
-    return userSnapshot.data().name;
+  const fetchExpenses = async () => {
+    const expensesQuery = query(
+      collection(db, "expenses"),
+      where("groupId", "==", groupId)
+    );
+    const querySnapshot = await getDocs(expensesQuery);
+    const expensesData = [];
+    querySnapshot.forEach((doc) => {
+      expensesData.push({ id: doc.id, ...doc.data() });
+    });
+    setExpenses(expensesData);
   };
 
   const createExpense = async () => {
@@ -108,6 +117,7 @@ export default function GroupDetails({ route, navigation }) {
     const expenseData = {
       amount: parseFloat(expenseAmount),
       title: expenseTitle,
+      category: selectedCategory,
       groupId: groupId,
       paidBy: auth.currentUser.uid, // Assuming the current user is paying TODO
       splitBetween: selectedMembers,
@@ -121,6 +131,10 @@ export default function GroupDetails({ route, navigation }) {
       };
       await addDoc(collection(db, "group_expenses"), groupExpenseData);
       setExpenseModalVisible(false);
+      setExpenseAmount("");
+      setExpenseTitle("");
+      setSelectedMembers([]);
+      fetchExpenses();
     } catch (error) {
       console.error("Error adding expense", error);
       Alert.alert("Error", "There was an issue adding the expense.");
@@ -161,8 +175,8 @@ export default function GroupDetails({ route, navigation }) {
         </>
       ),
     });
-
     fetchGroupDetails();
+    fetchExpenses();
   }, [navigation, modalVisible, groupId]);
 
   return (
@@ -185,6 +199,22 @@ export default function GroupDetails({ route, navigation }) {
         horizontal={true}
       />
 
+      <FlatList
+        data={expenses}
+        renderItem={({ item }) => (
+          <View style={styles.expenseItem}>
+            <Text style={styles.expenseTitle}>{item.title}</Text>
+
+            <Text style={styles.expenseAmount}>{`€ ${item.amount.toFixed(
+              2
+            )}`}</Text>
+            <Text style={styles.expenseDate}>Today</Text>
+            <Text style={styles.paidByText}>paid by</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item.id}
+      />
+
       <TouchableOpacity
         style={styles.roundButton}
         onPress={() => setExpenseModalVisible(true)}>
@@ -205,6 +235,7 @@ export default function GroupDetails({ route, navigation }) {
                   Cancel
                 </Text>
               </Pressable>
+              <Text style={[{ marginTop: 15 }]}>New Expense</Text>
               <Pressable style={[styles.modalButton2]} onPress={createExpense}>
                 <Text style={[styles.modalButtonText, { color: "#28A745" }]}>
                   Create
@@ -243,6 +274,26 @@ export default function GroupDetails({ route, navigation }) {
                 />
               </Pressable>
             ))}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: 15,
+              }}>
+              <Text style={[{ flex: 1 }]}>Category:</Text>
+              <Picker
+                selectedValue={selectedCategory}
+                onValueChange={(itemValue, itemIndex) =>
+                  setSelectedCategory(itemValue)
+                }
+                style={{ flex: 2, height: 50 }} // Adjust the style as needed
+              >
+                {Object.entries(Categories).map(([key, value]) => (
+                  <Picker.Item key={key} label={value} value={key} />
+                ))}
+              </Picker>
+            </View>
           </View>
         </View>
       </Modal>
