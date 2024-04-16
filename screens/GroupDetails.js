@@ -33,6 +33,9 @@ import DropdownMenu from "../components/DropdownMenu.js";
 import { Picker } from "@react-native-picker/picker";
 import { Categories } from "../constants/Categories.js";
 import { set } from "firebase/database";
+import { fetchCurrencies } from "../services/Currency.js";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { currencySymbols } from "../constants/Currencies.js";
 
 export default function GroupDetails({ route, navigation }) {
   const { groupId } = route.params;
@@ -45,6 +48,11 @@ export default function GroupDetails({ route, navigation }) {
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [expenses, setExpenses] = useState([]);
+  const [groupCurrency, setGroupCurrency] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState("");
+  const [currencies, setCurrencies] = useState([]);
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const menuOptions = [
     {
@@ -76,6 +84,9 @@ export default function GroupDetails({ route, navigation }) {
     if (groupSnapshot.exists()) {
       setGroupName(groupSnapshot.data().name);
       setMembers(groupSnapshot.data().members);
+      setGroupCurrency(groupSnapshot.data());
+      console.log(groupCurrency.currency);
+      setSelectedCurrency(groupSnapshot.data().currency);
     } else {
       Alert.alert("Group not found");
     }
@@ -90,6 +101,15 @@ export default function GroupDetails({ route, navigation }) {
     );
     const userGroupSnapshot = await getDocs(userGroupQuery);
     userGroupSnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+    //delete all expenses TODO test
+    const expensesQuery = query(
+      collection(db, "expenses"),
+      where("groupId", "==", groupId)
+    );
+    const expensesSnapshot = await getDocs(expensesQuery);
+    expensesSnapshot.forEach(async (doc) => {
       await deleteDoc(doc.ref);
     });
     navigation.navigate("Groups");
@@ -121,6 +141,8 @@ export default function GroupDetails({ route, navigation }) {
       groupId: groupId,
       paidBy: auth.currentUser.uid, // Assuming the current user is paying TODO
       splitBetween: selectedMembers,
+      currency: selectedCurrency,
+      date: date,
     };
 
     try {
@@ -134,6 +156,7 @@ export default function GroupDetails({ route, navigation }) {
       setExpenseAmount("");
       setExpenseTitle("");
       setSelectedMembers([]);
+      setSelectedCategory("");
       fetchExpenses();
     } catch (error) {
       console.error("Error adding expense", error);
@@ -153,6 +176,26 @@ export default function GroupDetails({ route, navigation }) {
     setExpenseModalVisible(false);
     setExpenseAmount("");
     setExpenseTitle("");
+    setSelectedMembers([]);
+    setSelectedCategory("");
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowDatePicker(false);
+    setDate(currentDate);
+  };
+
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
+
+  const formatDate = (date) => {
+    let d = new Date(date.seconds * 1000);
+    let day = ("0" + d.getDate()).slice(-2);
+    let month = ("0" + (d.getMonth() + 1)).slice(-2);
+    let year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   useEffect(() => {
@@ -175,6 +218,7 @@ export default function GroupDetails({ route, navigation }) {
         </>
       ),
     });
+    fetchCurrencies().then((data) => setCurrencies(data));
     fetchGroupDetails();
     fetchExpenses();
   }, [navigation, modalVisible, groupId]);
@@ -205,10 +249,13 @@ export default function GroupDetails({ route, navigation }) {
           <View style={styles.expenseItem}>
             <Text style={styles.expenseTitle}>{item.title}</Text>
 
-            <Text style={styles.expenseAmount}>{`€ ${item.amount.toFixed(
-              2
-            )}`}</Text>
-            <Text style={styles.expenseDate}>Today</Text>
+            <Text style={styles.expenseAmount}>
+              {currencySymbols[groupCurrency.currency] || "$"}{" "}
+              {item.amount.toFixed(2)}
+            </Text>
+
+            <Text style={styles.expenseDate}>{formatDate(item.date)}</Text>
+
             <Text style={styles.paidByText}>paid by</Text>
           </View>
         )}
@@ -248,13 +295,47 @@ export default function GroupDetails({ route, navigation }) {
               onChangeText={setExpenseTitle}
               style={styles.modalInput}
             />
-            <TextInput
-              placeholder="Amount"
-              value={expenseAmount}
-              onChangeText={setExpenseAmount}
-              keyboardType="numeric"
-              style={styles.modalInput}
-            />
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}>
+              <Picker
+                selectedValue={selectedCurrency}
+                style={{
+                  width: "40%",
+                  marginBottom: 15,
+                }}
+                onValueChange={(itemValue, itemIndex) =>
+                  setCurrency(itemValue)
+                }>
+                {currencies.map((currency, index) => (
+                  <Picker.Item
+                    key={index}
+                    label={currency.label}
+                    value={currency.value}
+                  />
+                ))}
+              </Picker>
+              <TextInput
+                placeholder="Amount"
+                value={expenseAmount}
+                onChangeText={setExpenseAmount}
+                keyboardType="numeric"
+                style={[styles.modalInput, { width: "55%" }]}
+              />
+            </View>
+            {showDatePicker && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                is24Hour={true}
+                display="default"
+                onChange={onDateChange}
+              />
+            )}
 
             <Text style={styles.modalText}>Split Between</Text>
             {members.map((member, index) => (
@@ -279,7 +360,7 @@ export default function GroupDetails({ route, navigation }) {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
-                marginTop: 15,
+                marginTop: 25,
               }}>
               <Text style={[{ flex: 1 }]}>Category:</Text>
               <Picker
@@ -294,6 +375,26 @@ export default function GroupDetails({ route, navigation }) {
                 ))}
               </Picker>
             </View>
+            <Pressable
+              onPress={showDatepicker}
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed
+                    ? "rgba(255, 255, 255, 0.2)"
+                    : "transparent",
+                  padding: 10,
+                  borderRadius: 5,
+                },
+                styles.buttonDate,
+              ]}>
+              {({ pressed }) => (
+                <Text style={styles.buttonTextDate}>
+                  {pressed
+                    ? `Selecting Date...`
+                    : `${date.toLocaleDateString()}`}
+                </Text>
+              )}
+            </Pressable>
           </View>
         </View>
       </Modal>

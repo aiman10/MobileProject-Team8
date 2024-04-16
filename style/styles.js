@@ -150,7 +150,7 @@ export default StyleSheet.create({
   },
 
   modalText: {
-    marginTop: 15,
+    marginTop: 30,
     marginBottom: 5,
     textAlign: "center",
   },
@@ -296,5 +296,16 @@ export default StyleSheet.create({
     position: "absolute",
     right: 15,
     bottom: 0,
+  },
+
+  buttonTextDate: {
+    color: "#28A745", // Adjust the color to match your theme
+    textAlign: "center",
+    fontSize: 16,
+  },
+  buttonDate: {
+    // Additional styling for the button
+    borderWidth: 1,
+    borderColor: "#28A745", // Adjust the border color to match your theme
   },
 });

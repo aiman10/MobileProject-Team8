@@ -36,14 +36,14 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import { createStackNavigator } from "@react-navigation/stack";
-import GroupDetails from "./GroupDetails.js";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { logout, signIn } from "../components/Auth";
 import * as Contacts from "expo-contacts";
-import { set } from "firebase/database";
 import DropdownMenu from "../components/DropdownMenu.js";
 import { Picker } from "@react-native-picker/picker";
-import axios from "axios";
+
+import { fetchCurrencies } from "../services/Currency.js";
+import { set } from "firebase/database";
 if (
   Platform.OS === "android" &&
   UIManager.setLayoutAnimationEnabledExperimental
@@ -86,7 +86,7 @@ export default function Groups({ naviagate }) {
   useEffect(() => {
     getCurrentUserName();
     fetchUserGroups();
-    fetchCurrencies();
+    fetchCurrencies().then((data) => setCurrencies(data));
     navigation.setOptions({
       headerRight: () => (
         <>
@@ -177,26 +177,11 @@ export default function Groups({ naviagate }) {
         fetchUserGroups();
         setMemberUsernames([]);
         setGroupName("");
+        setGroupDescription("");
+        setCurrency("EUR");
       } catch (error) {
         console.error("Error creating group", error);
       }
-    }
-  };
-
-  const fetchCurrencies = async () => {
-    try {
-      const response = await axios.get(
-        "https://v6.exchangerate-api.com/v6/62b142d42c6ca5a45e7944f1/codes"
-      );
-      if (response.data && response.data.supported_codes) {
-        const currencyData = response.data.supported_codes.map((code) => ({
-          label: `${code[0]} - ${code[1]}`,
-          value: code[0],
-        }));
-        setCurrencies(currencyData);
-      }
-    } catch (error) {
-      console.error("Error fetching currencies", error);
     }
   };
 
