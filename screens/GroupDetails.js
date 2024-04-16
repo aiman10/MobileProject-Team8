@@ -85,7 +85,7 @@ export default function GroupDetails({ route, navigation }) {
       setGroupName(groupSnapshot.data().name);
       setMembers(groupSnapshot.data().members);
       setGroupCurrency(groupSnapshot.data());
-      console.log(groupCurrency.currency);
+      //console.log(groupCurrency.currency);
       setSelectedCurrency(groupSnapshot.data().currency);
     } else {
       Alert.alert("Group not found");
@@ -125,6 +125,8 @@ export default function GroupDetails({ route, navigation }) {
     querySnapshot.forEach((doc) => {
       expensesData.push({ id: doc.id, ...doc.data() });
     });
+    //sort expenses by date
+    expensesData.sort((a, b) => b.date.seconds - a.date.seconds);
     setExpenses(expensesData);
   };
 
@@ -230,6 +232,7 @@ export default function GroupDetails({ route, navigation }) {
         <Text>No members in this group</Text>
       )}
       <FlatList
+        // style={{ marginBottom: -350 }}
         data={members}
         renderItem={({ item, index }) => (
           <View style={{ flexDirection: "row" }}>
@@ -248,14 +251,11 @@ export default function GroupDetails({ route, navigation }) {
         renderItem={({ item }) => (
           <View style={styles.expenseItem}>
             <Text style={styles.expenseTitle}>{item.title}</Text>
-
             <Text style={styles.expenseAmount}>
               {currencySymbols[groupCurrency.currency] || "$"}{" "}
               {item.amount.toFixed(2)}
             </Text>
-
             <Text style={styles.expenseDate}>{formatDate(item.date)}</Text>
-
             <Text style={styles.paidByText}>paid by</Text>
           </View>
         )}
