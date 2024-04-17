@@ -6,11 +6,13 @@ import styles from "../style/styles.js";
 import { auth } from "../firebase/Config";
 import { Ionicons } from "@expo/vector-icons";
 import Groups from "./Groups.js";
+import LoadingGIF from "../components/Loading.js";
 
 export default function Login({ navigation }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -22,18 +24,18 @@ export default function Login({ navigation }) {
     });
   }, []);
 
-  const handlePressLogin = () => {
+  const handlePressLogin = async () => {
     if (!email) {
-      Alert.alert("Email is required");
+      Alert.alert("Email field is required");
     } else if (!password) {
-      Alert.alert("Password is required");
+      Alert.alert("Password field is required");
     } else {
       signIn(email, password);
       onAuthStateChanged(auth, (user) => {
         if (user) {
           setEmail("");
           setPassword("");
-          navigation.navigate("Groups");
+          navigation.navigate("Loading");
         }
       });
     }
@@ -46,6 +48,8 @@ export default function Login({ navigation }) {
   if (isLoggedIn) {
     return (
       <View style={styles.container}>
+        <Pressable style={styles.backButton}></Pressable>
+        <Text style={styles.infoText}>Welcome</Text>
         <Pressable style={styles.button} onPress={handlePressLogout}>
           <Text style={styles.buttonText}>Logout</Text>
         </Pressable>
