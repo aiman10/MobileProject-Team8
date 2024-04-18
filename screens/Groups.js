@@ -41,7 +41,7 @@ import { logout, signIn } from "../components/Auth";
 import * as Contacts from "expo-contacts";
 import DropdownMenu from "../components/DropdownMenu.js";
 import { Picker } from "@react-native-picker/picker";
-
+import * as ImagePicker from "expo-image-picker";
 import { fetchCurrencies } from "../services/Currency.js";
 import { set } from "firebase/database";
 if (
@@ -69,6 +69,7 @@ export default function Groups({ naviagate }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [currency, setCurrency] = useState("EUR");
   const [currencies, setCurrencies] = useState([]);
+  const [uploadImage, setUploadImage] = useState(null);
 
   const menuOptions = [
     {
@@ -106,6 +107,16 @@ export default function Groups({ naviagate }) {
         </>
       ),
     });
+
+    (async () => {
+      if (Platform.OS !== "web") {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          alert("Sorry, we need camera roll permissions to make this work!");
+        }
+      }
+    })();
   }, [navigation, modalVisible]);
 
   const fetchUserGroups = async () => {
@@ -165,6 +176,7 @@ export default function Groups({ naviagate }) {
           members: [currentUserName, ...memberUsernames],
           description: groupDescription,
           currency: currency,
+          //groupImage: uploadImage,
         });
         await addDoc(collection(db, USER_GROUPS_REF), {
           userId: auth.currentUser.uid,
@@ -230,6 +242,41 @@ export default function Groups({ naviagate }) {
   const handlePressLogout = () => {
     logout();
     navigation.navigate("FrontPage");
+  };
+
+  const pickImage = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.cancelled) {
+        setUploadImage(result.uri);
+      }
+    } catch (E) {
+      console.log(E);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      alert("Sorry, we need camera permissions to make this work!");
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setUploadImage(result.uri);
+    }
   };
 
   const cancelCreateGroup = () => {
@@ -375,6 +422,22 @@ export default function Groups({ naviagate }) {
                   />
                 ))}
               </Picker>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: 20,
+              }}>
+              <Button title="Upload Image" onPress={pickImage} />
+              <Button title="Take Photo" onPress={takePhoto} />
+              {uploadImage && (
+                <Image
+                  source={{ uri: uploadImage }}
+                  style={{ width: 200, height: 200 }}
+                />
+              )}
             </View>
           </View>
         </View>
