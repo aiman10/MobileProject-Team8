@@ -309,7 +309,7 @@ export default function GroupDetails({ route, navigation }) {
                   marginBottom: 15,
                 }}
                 onValueChange={(itemValue, itemIndex) =>
-                  setCurrency(itemValue)
+                  setSelectedCurrency(itemValue)
                 }>
                 {currencies.map((currency, index) => (
                   <Picker.Item
