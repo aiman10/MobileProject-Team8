@@ -115,6 +115,23 @@ export default function GroupDetails({ route, navigation }) {
     navigation.navigate("Groups");
   };
 
+  const deleteGroupImage = async (imageUrl) => {
+    if (!imageUrl) {
+      console.log("No image URL provided for deletion.");
+      return;
+    }
+
+    const storage = getStorage();
+    const imageRef = refFromURL(storage, imageUrl);
+
+    try {
+      await deleteObject(imageRef);
+      console.log("Group image deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting group image:", error);
+    }
+  };
+
   const fetchExpenses = async () => {
     const expensesQuery = query(
       collection(db, "expenses"),

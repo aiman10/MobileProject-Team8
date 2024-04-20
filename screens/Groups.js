@@ -319,6 +319,8 @@ export default function Groups({ naviagate }) {
     setMemberUsernames([]);
     setUploadImage(null);
     setGroupName("");
+    setGroupDescription("");
+    setCurrency("EUR");
   };
 
   return (
