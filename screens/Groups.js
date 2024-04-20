@@ -7,6 +7,7 @@ import {
   Button,
   TextInput,
   FlatList,
+  Image,
 } from "react-native";
 import styles from "../style/styles.js";
 import {
@@ -44,6 +45,8 @@ import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { fetchCurrencies } from "../services/Currency.js";
 import { set } from "firebase/database";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 if (
   Platform.OS === "android" &&
   UIManager.setLayoutAnimationEnabledExperimental
@@ -84,40 +87,47 @@ export default function Groups({ naviagate }) {
     }, [])
   );
 
-  useEffect(() => {
-    getCurrentUserName();
-    fetchUserGroups();
-    fetchCurrencies().then((data) => setCurrencies(data));
-    navigation.setOptions({
-      headerRight: () => (
-        <>
-          <Pressable onPress={() => setModalVisible(true)}>
-            <Ionicons
-              name="settings"
-              size={24}
-              color="black"
-              style={{ marginRight: 15 }}
+  useEffect(
+    () => {
+      getCurrentUserName();
+      fetchUserGroups();
+      fetchCurrencies().then((data) => setCurrencies(data));
+      navigation.setOptions({
+        headerRight: () => (
+          <>
+            <Pressable onPress={() => setModalVisible(true)}>
+              <Ionicons
+                name="settings"
+                size={24}
+                color="black"
+                style={{ marginRight: 15 }}
+              />
+            </Pressable>
+            <DropdownMenu
+              isVisible={modalVisible}
+              onClose={() => setModalVisible(false)}
+              menuOptions={menuOptions}
             />
-          </Pressable>
-          <DropdownMenu
-            isVisible={modalVisible}
-            onClose={() => setModalVisible(false)}
-            menuOptions={menuOptions}
-          />
-        </>
-      ),
-    });
+          </>
+        ),
+      });
 
-    (async () => {
-      if (Platform.OS !== "web") {
-        const { status } =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== "granted") {
-          alert("Sorry, we need camera roll permissions to make this work!");
+      (async () => {
+        if (Platform.OS !== "web") {
+          const { status } =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== "granted") {
+            alert("Sorry, we need camera roll permissions to make this work!");
+          }
         }
+      })();
+      if (uploadImage) {
+        console.log("uploadImage has been updated:", uploadImage);
       }
-    })();
-  }, [navigation, modalVisible]);
+    },
+    [navigation, modalVisible],
+    uploadImage
+  );
 
   const fetchUserGroups = async () => {
     //setIsLoading(true);
@@ -171,12 +181,20 @@ export default function Groups({ naviagate }) {
           console.error("Error fetching current user");
         }
 
+        let imageUrl = null;
+        if (uploadImage) {
+          imageUrl = await uploadImageToStorage(
+            uploadImage,
+            `groupImages/${new Date().getTime()}`
+          );
+        }
+        //console.log("Image URL", imageUrl);
         const groupRef = await addDoc(collection(db, GROUPS_REF), {
           name: groupName,
           members: [currentUserName, ...memberUsernames],
           description: groupDescription,
           currency: currency,
-          //groupImage: uploadImage,
+          groupImage: imageUrl,
         });
         await addDoc(collection(db, USER_GROUPS_REF), {
           userId: auth.currentUser.uid,
@@ -191,6 +209,7 @@ export default function Groups({ naviagate }) {
         setGroupName("");
         setGroupDescription("");
         setCurrency("EUR");
+        setUploadImage(null);
       } catch (error) {
         console.error("Error creating group", error);
       }
@@ -249,12 +268,13 @@ export default function Groups({ naviagate }) {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
+        aspect: [26, 10],
         quality: 1,
       });
 
-      if (!result.cancelled) {
-        setUploadImage(result.uri);
+      if (!result.cancelled && result.assets && result.assets.length > 0) {
+        setUploadImage(result.assets[0].uri);
+        console.log("Picked image URI:", result.assets[0].uri);
       }
     } catch (E) {
       console.log(E);
@@ -262,26 +282,42 @@ export default function Groups({ naviagate }) {
   };
 
   const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      alert("Sorry, we need camera permissions to make this work!");
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        alert("Sorry, we need camera permissions to make this work!");
+        return;
+      }
 
-    let result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+      let result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [26, 10],
+        quality: 1,
+      });
 
-    if (!result.cancelled) {
-      setUploadImage(result.uri);
+      if (!result.cancelled && result.assets && result.assets.length > 0) {
+        setUploadImage(result.assets[0].uri);
+        console.log("Photo URI:", result.assets[0].uri);
+      }
+    } catch (e) {
+      console.error("Error taking photo:", e);
     }
+  };
+
+  const uploadImageToStorage = async (fileUri, path) => {
+    const response = await fetch(fileUri);
+    const blob = await response.blob();
+    const storage = getStorage();
+    const storageRef = ref(storage, path);
+    const snapshot = await uploadBytes(storageRef, blob);
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+    return downloadUrl;
   };
 
   const cancelCreateGroup = () => {
     setIsModalVisible(false);
     setMemberUsernames([]);
+    setUploadImage(null);
     setGroupName("");
   };
 
@@ -302,13 +338,16 @@ export default function Groups({ naviagate }) {
                 styles.card,
               ]}
               onPress={() => goToGroupDetails(item.id)}>
-              <Text>{item.name}</Text>
-              <Ionicons
-                name="chevron-forward"
-                size={24}
-                color="#000"
-                style={styles.iconStyle}
-              />
+              <View style={{ alignItems: "flex-start" }}>
+                <Text>{item.name}</Text>
+                {item.groupImage && (
+                  <Image
+                    source={{ uri: item.groupImage }}
+                    style={{ width: 260, height: 100, marginTop: 10 }}
+                    //resizeMode="contain"
+                  />
+                )}
+              </View>
             </Pressable>
           )}
           ListEmptyComponent={() => (
@@ -432,12 +471,6 @@ export default function Groups({ naviagate }) {
               }}>
               <Button title="Upload Image" onPress={pickImage} />
               <Button title="Take Photo" onPress={takePhoto} />
-              {uploadImage && (
-                <Image
-                  source={{ uri: uploadImage }}
-                  style={{ width: 200, height: 200 }}
-                />
-              )}
             </View>
           </View>
         </View>

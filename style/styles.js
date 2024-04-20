@@ -127,10 +127,6 @@ export default StyleSheet.create({
     // elevation: 5,
   },
 
-  iconStyle: {
-    alignSelf: "center",
-  },
-
   centeredView: {
     flex: 1,
     justifyContent: "flex-start",
