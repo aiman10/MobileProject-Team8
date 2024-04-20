@@ -304,4 +304,21 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: "#28A745", // Adjust the border color to match your theme
   },
+
+  totalExpensesContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "black",
+    padding: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  totalExpensesText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
 });

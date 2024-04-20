@@ -53,6 +53,7 @@ export default function GroupDetails({ route, navigation }) {
   const [currencies, setCurrencies] = useState([]);
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [totalExpenses, setTotalExpenses] = useState(0);
 
   const menuOptions = [
     {
@@ -240,7 +241,9 @@ export default function GroupDetails({ route, navigation }) {
     fetchCurrencies().then((data) => setCurrencies(data));
     fetchGroupDetails();
     fetchExpenses();
-  }, [navigation, modalVisible, groupId]);
+    const total = expenses.reduce((acc, expense) => acc + expense.amount, 0);
+    setTotalExpenses(total);
+  }, [navigation, modalVisible, groupId, expenses]);
 
   return (
     <View style={[styles.container, { marginTop: -25 }]}>
@@ -278,12 +281,19 @@ export default function GroupDetails({ route, navigation }) {
         )}
         keyExtractor={(item) => item.id}
       />
-
+      <View style={styles.totalExpensesContainer}>
+        <Text style={styles.totalExpensesText}>Total Expenses:</Text>
+        <Text style={styles.totalExpensesText}>
+          {currencySymbols[groupCurrency.currency] || "$"}
+          {totalExpenses.toFixed(2)}
+        </Text>
+      </View>
       <TouchableOpacity
         style={styles.roundButton}
         onPress={() => setExpenseModalVisible(true)}>
         <AntDesign name="plus" size={24} color="white" />
       </TouchableOpacity>
+
       <Modal
         animationType="slide"
         transparent={true}
