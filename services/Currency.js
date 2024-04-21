@@ -3,7 +3,7 @@ import axios from "axios";
 export const fetchCurrencies = async () => {
   try {
     const response = await axios.get(
-      "https://v6.exchangerate-api.com/v6/62b142d42c6ca5a45e7944f1/codes"
+      "https://v6.exchangerate-api.com/v6/649f8dae2e49a134b663d0f6/codes"
     );
     if (response.data && response.data.supported_codes) {
       const currencyData = response.data.supported_codes.map((code) => ({
@@ -23,7 +23,7 @@ export const fetchConversionRate = async (fromCurrency, toCurrency) => {
   // console.log("toCurrency", toCurrency);
   try {
     const response = await axios.get(
-      `https://v6.exchangerate-api.com/v6/62b142d42c6ca5a45e7944f1/pair/${fromCurrency}/${toCurrency}`
+      `https://v6.exchangerate-api.com/v6/649f8dae2e49a134b663d0f6/pair/${fromCurrency}/${toCurrency}`
     );
     if (response.data && response.data.conversion_rate) {
       return response.data.conversion_rate;
