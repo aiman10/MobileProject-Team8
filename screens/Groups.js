@@ -121,9 +121,6 @@ export default function Groups({ naviagate }) {
           }
         }
       })();
-      if (uploadImage) {
-        console.log("uploadImage has been updated:", uploadImage);
-      }
     },
     [navigation, modalVisible],
     uploadImage
@@ -274,7 +271,7 @@ export default function Groups({ naviagate }) {
 
       if (!result.cancelled && result.assets && result.assets.length > 0) {
         setUploadImage(result.assets[0].uri);
-        console.log("Picked image URI:", result.assets[0].uri);
+        //console.log("Picked image URI:", result.assets[0].uri);
       }
     } catch (E) {
       console.log(E);
@@ -297,7 +294,7 @@ export default function Groups({ naviagate }) {
 
       if (!result.cancelled && result.assets && result.assets.length > 0) {
         setUploadImage(result.assets[0].uri);
-        console.log("Photo URI:", result.assets[0].uri);
+        //console.log("Photo URI:", result.assets[0].uri);
       }
     } catch (e) {
       console.error("Error taking photo:", e);
