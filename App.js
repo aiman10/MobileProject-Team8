@@ -47,7 +47,7 @@ export default function App({}) {
           backgroundColor : "#46467A"
           }}} name="Register" component={Register} />
         <Stack.Screen options={{headerStyle: {
-          backgroundColor : "#46467A"
+          backgroundColor : "#FFC212"
           }}} name="Loading" component={LoadingGIF} />
       </Stack.Navigator>
     </NavigationContainer>
