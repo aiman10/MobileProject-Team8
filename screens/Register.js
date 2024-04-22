@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, Image, Pressable, Alert, Button } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  Pressable,
+  Alert,
+  Button,
+} from "react-native";
 import { logout, signUp } from "../components/Auth";
 import { onAuthStateChanged } from "firebase/auth";
 import styles from "../style/styles.js";
 import { auth } from "../firebase/Config";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 import { Picker } from "@react-native-picker/picker";
 import { set } from "firebase/database";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -35,8 +43,7 @@ export default function Register({ navigation }) {
         }
       }
     })();
-  }, [],
-  );
+  }, []);
 
   const handlePressRegister = () => {
     if (!username) {
@@ -51,27 +58,27 @@ export default function Register({ navigation }) {
       setPassword("");
       Alert.alert("Please confirm your password");
     } else {
-      signUp(email, password, username,image );
+      signUp(email, password, username, image);
       onAuthStateChanged(auth, (user) => {
         if (user) {
           setUsername("");
           setEmail("");
           setPassword("");
           setConfirmPassword("");
-          setUploadImage(null);
+          setImage(null);
           navigation.navigate("Groups");
         }
       });
     }
   };
 
-  
-
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
-      Alert.alert('Permission to access camera roll is required!');
-      return;}
+      Alert.alert("Permission to access camera roll is required!");
+      return;
+    }
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -81,7 +88,7 @@ export default function Register({ navigation }) {
       });
 
       if (!result.cancelled && result.assets && result.assets.length > 0) {
-        setUploadImage(result.assets[0].uri);
+        setImage(result.assets[0].uri);
         //console.log("Picked image URI:", result.assets[0].uri);
       }
     } catch (E) {
@@ -104,7 +111,7 @@ export default function Register({ navigation }) {
       });
 
       if (!result.cancelled && result.assets && result.assets.length > 0) {
-        setUploadImage(result.assets[0].uri);
+        setImage(result.assets[0].uri);
         //console.log("Photo URI:", result.assets[0].uri);
       }
     } catch (e) {
@@ -157,14 +164,17 @@ export default function Register({ navigation }) {
           onChangeText={setConfirmPassword}
           secureTextEntry={true}
         />
-          <Button title="Upload Image" onPress={pickImage} />
-      {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
-          <Button title="Take Photo" onPress={takePhoto} />
-      {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+        <Button title="Upload Image" onPress={pickImage} />
+        {image && (
+          <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
+        )}
+        <Button title="Take Photo" onPress={takePhoto} />
+        {image && (
+          <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
+        )}
         <Pressable style={styles.button} onPress={handlePressRegister}>
           <Text style={styles.buttonText}>Register</Text>
         </Pressable>
-        
       </View>
     );
   }

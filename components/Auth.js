@@ -6,8 +6,9 @@ import {
 } from "firebase/auth";
 import { doc, setDoc } from "@firebase/firestore";
 import { auth, db, USERS_REF } from "../firebase/Config";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-export const signUp = async (email, password, username,image) => {
+export const signUp = async (email, password, username, image) => {
   let imageUrl = null;
   if (image) {
     imageUrl = await uploadImageToStorage(
@@ -20,7 +21,7 @@ export const signUp = async (email, password, username,image) => {
       setDoc(doc(db, USERS_REF, userCredential.user.uid), {
         username: username,
         email: userCredential.user.email,
-        userImage, imageUrl
+        userImage: imageUrl,
       });
     })
     .catch((error) => {
