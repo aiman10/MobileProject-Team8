@@ -52,7 +52,7 @@ export default StyleSheet.create({
   },
 
   buttonText: {
-    color: prim3,
+    color: prim1,
     fontSize: 16,
     fontWeight: "bold",
     textTransform: "uppercase",
@@ -86,7 +86,7 @@ export default StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 30,
-    backgroundColor: tert,
+    backgroundColor: prim1,
     position: "absolute",
     bottom: 10,
     left: "50%",
@@ -115,7 +115,7 @@ export default StyleSheet.create({
     zIndex: 10,
   },
   card: {
-    backgroundColor: tert,
+    backgroundColor: prim3,
     borderRadius: 8,
     padding: 16,
     width: 290,
@@ -138,7 +138,10 @@ export default StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "stretch",
   },
-
+  groupText: {
+    color: prim1,
+    fontWeight : 900,
+  },
   //Modal
   modalView: {
     flex: 1,
@@ -155,6 +158,7 @@ export default StyleSheet.create({
     marginTop: 30,
     marginBottom: 5,
     textAlign: "center",
+    color: prim1,
   },
   modalInput: {
     alignSelf: "center",
