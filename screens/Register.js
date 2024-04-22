@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
   Button,
+  Platform,
 } from "react-native";
 import { logout, signUp } from "../components/Auth";
 import { onAuthStateChanged } from "firebase/auth";
@@ -165,9 +166,7 @@ export default function Register({ navigation }) {
           secureTextEntry={true}
         />
         <Button title="Upload Image" onPress={pickImage} />
-        {image && (
-          <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
-        )}
+
         <Button title="Take Photo" onPress={takePhoto} />
         {image && (
           <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
