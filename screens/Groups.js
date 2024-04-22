@@ -338,7 +338,7 @@ export default function Groups({ naviagate }) {
               ]}
               onPress={() => goToGroupDetails(item.id)}>
               <View style={{ alignItems: "flex-start" }}>
-                <Text>{item.name}</Text>
+                <Text style={styles.groupText}>{item.name}</Text>
                 {item.groupImage && (
                   <Image
                     source={{ uri: item.groupImage }}
