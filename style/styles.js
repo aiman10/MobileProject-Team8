@@ -11,7 +11,7 @@ const tert = "#E0DFFD"; //grey
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: tert,
+    backgroundColor: "white",
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
@@ -24,7 +24,7 @@ export default StyleSheet.create({
   },
   input: {
     width: width * 0.8,
-    backgroundColor: tert,
+    backgroundColor: "white",
     borderRadius: 5,
     padding: 15,
     marginBottom: 15,
@@ -140,7 +140,10 @@ export default StyleSheet.create({
   },
   groupText: {
     color: prim1,
+    fontWeight : "bold",
   },
+  //--------App
+  
   //Modal
   modalView: {
     flex: 1,
