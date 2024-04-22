@@ -140,7 +140,6 @@ export default StyleSheet.create({
   },
   groupText: {
     color: prim1,
-    fontWeight : 900,
   },
   //Modal
   modalView: {
