@@ -36,6 +36,9 @@ import { set } from "firebase/database";
 import { fetchCurrencies } from "../services/Currency.js";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { currencySymbols } from "../constants/Currencies.js";
+import { all } from "axios";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import * as ImagePicker from "expo-image-picker";
 
 export default function GroupDetails({ route, navigation }) {
   const { groupId } = route.params;
@@ -54,6 +57,7 @@ export default function GroupDetails({ route, navigation }) {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [uploadImage, setUploadImage] = useState(null);
 
   const menuOptions = [
     {
@@ -89,7 +93,7 @@ export default function GroupDetails({ route, navigation }) {
       //console.log(groupCurrency.currency);
       setSelectedCurrency(groupSnapshot.data().currency);
     } else {
-      Alert.alert("Group not found");
+      //Alert.alert("Group not found");
     }
   };
 
@@ -154,6 +158,11 @@ export default function GroupDetails({ route, navigation }) {
       return;
     }
 
+    let imageUri = null;
+    if (uploadImage) {
+      imageUri = await uploadImageToStorage(uploadImage, `expenses/${groupId}`);
+    }
+
     const expenseData = {
       amount: parseFloat(expenseAmount),
       title: expenseTitle,
@@ -163,6 +172,7 @@ export default function GroupDetails({ route, navigation }) {
       splitBetween: selectedMembers,
       currency: selectedCurrency,
       date: date,
+      expenseImage: imageUri,
     };
 
     try {
@@ -190,6 +200,54 @@ export default function GroupDetails({ route, navigation }) {
     } else {
       setSelectedMembers([...selectedMembers, member]);
     }
+  };
+
+  const pickImage = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.cancelled) {
+        setUploadImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error picking image", error);
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        console.error("Permission to access camera was denied");
+        return;
+      }
+      let result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.cancelled) {
+        setUploadImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error taking photo", error);
+    }
+  };
+
+  const uploadImageToStorage = async (fileUri, path) => {
+    const response = await fetch(fileUri);
+    const blob = await response.blob();
+    const storage = getStorage();
+    const storageRef = ref(storage, path);
+    const snapshot = await uploadBytes(storageRef, blob);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return downloadURL;
   };
 
   const cancelCreateExpense = () => {
@@ -422,6 +480,16 @@ export default function GroupDetails({ route, navigation }) {
                 </Text>
               )}
             </Pressable>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: 20,
+              }}>
+              <Button title="Upload Image" onPress={pickImage} />
+              <Button title="Take Photo" onPress={takePhoto} />
+            </View>
           </View>
         </View>
       </Modal>
