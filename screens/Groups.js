@@ -474,7 +474,6 @@ export default function Groups({ naviagate }) {
           </View>
         </View>
       </Modal>
-
       <Modal
         animationType="slide"
         transparent={true}
