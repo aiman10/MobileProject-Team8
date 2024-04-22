@@ -26,7 +26,17 @@ export default function Register({ navigation }) {
         setIsLoggedIn(false);
       }
     });
-  }, []);
+    (async () => {
+      if (Platform.OS !== "web") {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          alert("Sorry, we need camera roll permissions to make this work!");
+        }
+      }
+    })();
+  }, [],
+  );
 
   const handlePressRegister = () => {
     if (!username) {
@@ -41,18 +51,21 @@ export default function Register({ navigation }) {
       setPassword("");
       Alert.alert("Please confirm your password");
     } else {
-      signUp(email, password, username);
+      signUp(email, password, username,image );
       onAuthStateChanged(auth, (user) => {
         if (user) {
           setUsername("");
           setEmail("");
           setPassword("");
           setConfirmPassword("");
+          setUploadImage(null);
           navigation.navigate("Groups");
         }
       });
     }
   };
+
+  
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -97,16 +110,6 @@ export default function Register({ navigation }) {
     } catch (e) {
       console.error("Error taking photo:", e);
     }
-  };
-
-  const uploadImageToStorage = async (fileUri, path) => {
-    const response = await fetch(fileUri);
-    const blob = await response.blob();
-    const storage = getStorage();
-    const storageRef = ref(storage, path);
-    const snapshot = await uploadBytes(storageRef, blob);
-    const downloadUrl = await getDownloadURL(snapshot.ref);
-    return downloadUrl;
   };
 
   const handlePressLogout = () => {
