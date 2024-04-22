@@ -2,10 +2,16 @@ import { StyleSheet, Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
 
+const prim1 = "#46467A"; //dark blue
+const prim2 = "#FFC212"; //yellow
+const prim3 = "#F9B0C3"; //pink
+const second = "#7766C6";//light blue
+const tert = "#E0DFFD"; //grey
+
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: tert,
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
@@ -13,12 +19,12 @@ export default StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
+    color: prim3,
     paddingVertical: 20,
   },
   input: {
     width: width * 0.8,
-    backgroundColor: "#fff",
+    backgroundColor: tert,
     borderRadius: 5,
     padding: 15,
     marginBottom: 15,
@@ -35,7 +41,7 @@ export default StyleSheet.create({
     height: 200,
   },
   button: {
-    backgroundColor: "#28a745",
+    backgroundColor: prim2,
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 5,
@@ -46,18 +52,18 @@ export default StyleSheet.create({
   },
 
   buttonText: {
-    color: "#fff",
+    color: prim3,
     fontSize: 16,
     fontWeight: "bold",
     textTransform: "uppercase",
   },
   infoText: {
     fontSize: 16,
-    color: "#333",
+    color: prim1,
     paddingVertical: 10,
   },
   groupButtonStyle: {
-    backgroundColor: "#28A745",
+    backgroundColor: prim2,
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 5,
@@ -68,7 +74,7 @@ export default StyleSheet.create({
     justifyContent: "center",
   },
   groupButtonText: {
-    color: "#fff",
+    color: prim1,
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
@@ -80,7 +86,7 @@ export default StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 30,
-    backgroundColor: "#28a745",
+    backgroundColor: tert,
     position: "absolute",
     bottom: 10,
     left: "50%",
@@ -93,7 +99,7 @@ export default StyleSheet.create({
   },
 
   buttonStyle: {
-    backgroundColor: "#28a745",
+    backgroundColor: second,
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 5,
@@ -109,7 +115,7 @@ export default StyleSheet.create({
     zIndex: 10,
   },
   card: {
-    backgroundColor: "white",
+    backgroundColor: tert,
     borderRadius: 8,
     padding: 16,
     width: 290,
