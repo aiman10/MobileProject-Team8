@@ -6,19 +6,38 @@ import {
 } from "firebase/auth";
 import { doc, setDoc } from "@firebase/firestore";
 import { auth, db, USERS_REF } from "../firebase/Config";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-export const signUp = async (email, password, username) => {
+export const signUp = async (email, password, username, image) => {
+  let imageUrl = null;
+  if (image) {
+    imageUrl = await uploadImageToStorage(
+      image,
+      `userImages/${new Date().getTime()}`
+    );
+  }
   await createUserWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       setDoc(doc(db, USERS_REF, userCredential.user.uid), {
         username: username,
         email: userCredential.user.email,
+        userImage: imageUrl,
       });
     })
     .catch((error) => {
       console.log("Registration failed " + error.message);
       Alert.alert("Registration failed", error.message);
     });
+};
+
+const uploadImageToStorage = async (fileUri, path) => {
+  const response = await fetch(fileUri);
+  const blob = await response.blob();
+  const storage = getStorage();
+  const storageRef = ref(storage, path);
+  const snapshot = await uploadBytes(storageRef, blob);
+  const downloadUrl = await getDownloadURL(snapshot.ref);
+  return downloadUrl;
 };
 
 export const signIn = async (email, password) => {
