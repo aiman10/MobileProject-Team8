@@ -1,10 +1,23 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, Pressable, Alert, Button } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  Pressable,
+  Alert,
+  Button,
+  Platform,
+} from "react-native";
 import { logout, signUp } from "../components/Auth";
 import { onAuthStateChanged } from "firebase/auth";
 import styles from "../style/styles.js";
 import { auth } from "../firebase/Config";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { Picker } from "@react-native-picker/picker";
+import { set } from "firebase/database";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function Register({ navigation }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,6 +25,7 @@ export default function Register({ navigation }) {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [image, setImage] = useState(null);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -21,6 +35,15 @@ export default function Register({ navigation }) {
         setIsLoggedIn(false);
       }
     });
+    (async () => {
+      if (Platform.OS !== "web") {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          alert("Sorry, we need camera roll permissions to make this work!");
+        }
+      }
+    })();
   }, []);
 
   const handlePressRegister = () => {
@@ -36,16 +59,64 @@ export default function Register({ navigation }) {
       setPassword("");
       Alert.alert("Please confirm your password");
     } else {
-      signUp(email, password, username);
+      signUp(email, password, username, image);
       onAuthStateChanged(auth, (user) => {
         if (user) {
           setUsername("");
           setEmail("");
           setPassword("");
           setConfirmPassword("");
+          setImage(null);
           navigation.navigate("Groups");
         }
       });
+    }
+  };
+
+  const pickImage = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission to access camera roll is required!");
+      return;
+    }
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [26, 10],
+        quality: 1,
+      });
+
+      if (!result.cancelled && result.assets && result.assets.length > 0) {
+        setImage(result.assets[0].uri);
+        //console.log("Picked image URI:", result.assets[0].uri);
+      }
+    } catch (E) {
+      console.log(E);
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        alert("Sorry, we need camera permissions to make this work!");
+        return;
+      }
+
+      let result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [26, 10],
+        quality: 1,
+      });
+
+      if (!result.cancelled && result.assets && result.assets.length > 0) {
+        setImage(result.assets[0].uri);
+        //console.log("Photo URI:", result.assets[0].uri);
+      }
+    } catch (e) {
+      console.error("Error taking photo:", e);
     }
   };
 
@@ -94,6 +165,12 @@ export default function Register({ navigation }) {
           onChangeText={setConfirmPassword}
           secureTextEntry={true}
         />
+        <Button title="Upload Image" onPress={pickImage} />
+
+        <Button title="Take Photo" onPress={takePhoto} />
+        {image && (
+          <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
+        )}
         <Pressable style={styles.button} onPress={handlePressRegister}>
           <Text style={styles.buttonText}>Register</Text>
         </Pressable>
