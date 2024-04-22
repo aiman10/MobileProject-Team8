@@ -54,7 +54,7 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export default function Groups({ naviagate }) {
+export default function Groups({}) {
   const [groupName, setGroupName] = useState("");
   const [userGroups, setUserGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(false);

@@ -36,11 +36,11 @@ import { set } from "firebase/database";
 import { fetchCurrencies } from "../services/Currency.js";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { currencySymbols } from "../constants/Currencies.js";
-import { all } from "axios";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 
-export default function GroupDetails({ route, navigation }) {
+export default function GroupDetails({ route }) {
   const { groupId } = route.params;
   const [groupName, setGroupName] = useState("");
   const [members, setMembers] = useState([]);
@@ -58,6 +58,10 @@ export default function GroupDetails({ route, navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [uploadImage, setUploadImage] = useState(null);
+  const navigation = useNavigation();
+  const gotToExpenseDetails = (expenseId) => {
+    navigation.navigate("ExpenseDetails", { expenseId: expenseId });
+  };
 
   const menuOptions = [
     {
@@ -327,15 +331,17 @@ export default function GroupDetails({ route, navigation }) {
       <FlatList
         data={expenses}
         renderItem={({ item }) => (
-          <View style={styles.expenseItem}>
-            <Text style={styles.expenseTitle}>{item.title}</Text>
-            <Text style={styles.expenseAmount}>
-              {currencySymbols[groupCurrency.currency] || "$"}{" "}
-              {item.amount.toFixed(2)}
-            </Text>
-            <Text style={styles.expenseDate}>{formatDate(item.date)}</Text>
-            <Text style={styles.paidByText}>paid by</Text>
-          </View>
+          <Pressable onPress={() => gotToExpenseDetails(item.id)}>
+            <View style={styles.expenseItem}>
+              <Text style={styles.expenseTitle}>{item.title}</Text>
+              <Text style={styles.expenseAmount}>
+                {currencySymbols[groupCurrency.currency] || "$"}{" "}
+                {item.amount.toFixed(2)}
+              </Text>
+              <Text style={styles.expenseDate}>{formatDate(item.date)}</Text>
+              <Text style={styles.paidByText}>paid by</Text>
+            </View>
+          </Pressable>
         )}
         keyExtractor={(item) => item.id}
       />
