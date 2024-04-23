@@ -2,64 +2,33 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  Pressable,
-  Alert,
-  Button,
-  TextInput,
-  FlatList,
   Image,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
 } from "react-native";
 import styles from "../style/styles.js";
-import {
-  auth,
-  db,
-  USERS_REF,
-  USER_GROUPS_REF,
-  GROUPS_REF,
-} from "../firebase/Config";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-  doc,
-  getDoc,
-  deleteDoc,
-} from "firebase/firestore";
-import { ActivityIndicator, Modal, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { AntDesign } from "@expo/vector-icons";
-import DropdownMenu from "../components/DropdownMenu.js";
-import { Picker } from "@react-native-picker/picker";
-import { Categories } from "../constants/Categories.js";
-import { set } from "firebase/database";
-import { fetchCurrencies } from "../services/Currency.js";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { currencySymbols } from "../constants/Currencies.js";
-import { all } from "axios";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import * as ImagePicker from "expo-image-picker";
+import { db } from "../firebase/Config";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function ExpenseDetails({ route }) {
   const { expenseId } = route.params;
   const [expenseDetails, setExpenseDetails] = useState({});
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
-    fetchExpenseDetails();
-  }, []);
+    const fetchExpenseDetails = async () => {
+      const expenseRef = doc(db, "expenses", expenseId);
+      const expenseSnap = await getDoc(expenseRef);
+      if (expenseSnap.exists()) {
+        setExpenseDetails(expenseSnap.data());
+      } else {
+        console.log("No such document!");
+      }
+    };
 
-  const fetchExpenseDetails = async () => {
-    const expenseRef = doc(db, "expenses", expenseId);
-    const expenseSnap = await getDoc(expenseRef);
-    if (expenseSnap.exists()) {
-      //console.log("Document data:", expenseSnap.data());
-      setExpenseDetails(expenseSnap.data());
-    } else {
-      console.log("No such document!");
-    }
-  };
+    fetchExpenseDetails();
+  }, [expenseId]);
 
   return (
     <View style={styles.container}>
@@ -69,10 +38,37 @@ export default function ExpenseDetails({ route }) {
       </Text>
       <Text style={styles.text}>Category: {expenseDetails.category}</Text>
       <Text style={styles.text}>Description: {expenseDetails.description}</Text>
-      <Image
-        source={{ uri: expenseDetails.expenseImage }}
-        style={{ width: 300, height: 300 }}
-      />
+
+      {
+        //show button only if there is an image
+        expenseDetails.expenseImage && (
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setModalVisible(true)}>
+            <Text style={styles.buttonText}>View Receipt</Text>
+          </TouchableOpacity>
+        )
+      }
+
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}>
+        <View style={styles.centeredView}>
+          <Image
+            source={{ uri: expenseDetails.expenseImage }}
+            style={styles.fullSizeImage}
+          />
+          <TouchableOpacity
+            style={[styles.buttonClose, { marginTop: -75 }]}
+            onPress={() => setModalVisible(!modalVisible)}>
+            <Text style={[styles.textStyle]}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }

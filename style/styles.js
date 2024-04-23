@@ -5,7 +5,7 @@ const { width } = Dimensions.get("window");
 const prim1 = "#46467A"; //dark blue
 const prim2 = "#FFC212"; //yellow
 const prim3 = "#F9B0C3"; //pink
-const second = "#7766C6";//light blue
+const second = "#7766C6"; //light blue
 const tert = "#E0DFFD"; //grey
 
 export default StyleSheet.create({
@@ -140,10 +140,10 @@ export default StyleSheet.create({
   },
   groupText: {
     color: prim1,
-    fontWeight : "bold",
+    fontWeight: "bold",
   },
   //--------App
-  
+
   //Modal
   modalView: {
     flex: 1,
@@ -332,5 +332,11 @@ export default StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
+  },
+
+  fullSizeImage: {
+    width: "100%",
+    height: "90%",
+    resizeMode: "contain",
   },
 });
