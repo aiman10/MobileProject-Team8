@@ -47,7 +47,7 @@ export default function App({}) {
               backgroundColor: "#46467A",
             },
           }}
-          name="GroupDetails"
+          name="Expenses"
           component={GroupDetails}
         />
         <Stack.Screen

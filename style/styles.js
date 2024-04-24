@@ -339,4 +339,52 @@ export default StyleSheet.create({
     height: "90%",
     resizeMode: "contain",
   },
+
+  modalViewSmall: {
+    width: "80%",
+    maxHeight: "15%",
+    marginLeft: 40,
+    marginTop: 60,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
+  },
+
+  filterButton: {
+    backgroundColor: "#007AFF",
+    padding: 10,
+    borderRadius: 5,
+    margin: 10,
+    marginLeft: 300,
+  },
+
+  filterButtonText: {
+    textAlign: "center",
+    color: "white",
+  },
+
+  filterModalButton: {
+    backgroundColor: "#46467A",
+    padding: 5,
+    margin: 10,
+  },
+
+  closeModalButton: {
+    backgroundColor: "#FF3B30",
+    padding: 5,
+    margin: 10,
+    marginTop: 15,
+    borderRadius: 5,
+  },
+  centeredView2: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "stretch",
+    paddingTop: 100,
+  },
 });

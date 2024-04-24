@@ -27,7 +27,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { ActivityIndicator, Modal, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import DropdownMenu from "../components/DropdownMenu.js";
 import { Picker } from "@react-native-picker/picker";
@@ -59,9 +59,11 @@ export default function GroupDetails({ route }) {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [uploadImage, setUploadImage] = useState(null);
   const navigation = useNavigation();
+  const [categoryFilter, setCategoryFilter] = useState(false);
   const gotToExpenseDetails = (expenseId) => {
     navigation.navigate("ExpenseDetails", { expenseId: expenseId });
   };
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
   const menuOptions = [
     {
@@ -85,6 +87,24 @@ export default function GroupDetails({ route }) {
         );
       },
     },
+  ];
+
+  const categoryFilterOptions = [
+    {
+      label: "All",
+      onPress: () => {
+        setCategoryFilter(false);
+        fetchExpenses();
+      },
+    },
+    //impport from Categories.js
+    ...Object.entries(Categories).map(([key, value]) => ({
+      label: value,
+      onPress: () => {
+        setCategoryFilter(false);
+        filterExpensesByCategory(key);
+      },
+    })),
   ];
 
   const fetchGroupDetails = async () => {
@@ -280,6 +300,19 @@ export default function GroupDetails({ route }) {
     return `${day}/${month}/${year}`;
   };
 
+  const filterExpensesByCategory = (category) => {
+    if (category === "All") {
+      setExpenses(expenses);
+      return;
+    } else {
+      const filteredExpenses = expenses.filter(
+        (expense) => expense.category.toLowerCase() === category.toLowerCase()
+      );
+      setExpenses(filteredExpenses);
+      console.log("Filtered Expenses:", filteredExpenses);
+    }
+  };
+
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -292,6 +325,7 @@ export default function GroupDetails({ route }) {
               style={{ marginRight: 15 }}
             />
           </Pressable>
+
           <DropdownMenu
             isVisible={modalVisible}
             onClose={() => setModalVisible(false)}
@@ -310,6 +344,7 @@ export default function GroupDetails({ route }) {
   return (
     <View style={[styles.container, { marginTop: -25 }]}>
       <Text style={styles.title}>{groupName}</Text>
+
       {(!members || members.length === 0) && (
         <Text>No members in this group</Text>
       )}
@@ -327,6 +362,37 @@ export default function GroupDetails({ route }) {
         keyExtractor={(item, index) => `${item}-${index}`}
         horizontal={true}
       />
+      <TouchableOpacity
+        style={styles.filterButton}
+        onPress={() => setCategoryModalVisible(true)}>
+        <FontAwesome name="filter" size={24} color="black" />
+      </TouchableOpacity>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={categoryModalVisible}
+        onRequestClose={() => setCategoryModalVisible(false)}>
+        <View style={[styles.centeredView2]}>
+          <View style={[styles.modalView]}>
+            {Object.entries(Categories).map(([key, value]) => (
+              <TouchableOpacity
+                key={key}
+                style={styles.filterModalButton}
+                onPress={() => {
+                  filterExpensesByCategory(key);
+                  setCategoryModalVisible(false);
+                }}>
+                <Text style={styles.textStyle}>{value}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={[styles.closeModalButton]}
+              onPress={() => setCategoryModalVisible(false)}>
+              <Text style={styles.textStyle}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <FlatList
         data={expenses}

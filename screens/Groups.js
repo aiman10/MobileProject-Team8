@@ -60,7 +60,7 @@ export default function Groups({}) {
   const [isLoading, setIsLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const goToGroupDetails = (groupId) => {
-    navigation.navigate("GroupDetails", { groupId: groupId });
+    navigation.navigate("Expenses", { groupId: groupId });
   };
   const navigation = useNavigation();
   const [memberUsernames, setMemberUsernames] = useState([]);
