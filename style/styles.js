@@ -385,6 +385,6 @@ export default StyleSheet.create({
     flex: 1,
     justifyContent: "flex-start",
     alignItems: "stretch",
-    paddingTop: 100,
+    paddingTop: 50,
   },
 });

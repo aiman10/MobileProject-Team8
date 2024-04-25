@@ -39,6 +39,7 @@ import { currencySymbols } from "../constants/Currencies.js";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
+import { all } from "axios";
 
 export default function GroupDetails({ route }) {
   const { groupId } = route.params;
@@ -51,6 +52,7 @@ export default function GroupDetails({ route }) {
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [expenses, setExpenses] = useState([]);
+  const [allExpenses, setAllExpenses] = useState([]);
   const [groupCurrency, setGroupCurrency] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState("");
   const [currencies, setCurrencies] = useState([]);
@@ -174,6 +176,8 @@ export default function GroupDetails({ route }) {
     //sort expenses by date
     expensesData.sort((a, b) => b.date.seconds - a.date.seconds);
     setExpenses(expensesData);
+    setAllExpenses(expensesData);
+    //console.log("Stap 1: Expenses:", expenses);
   };
 
   const createExpense = async () => {
@@ -302,14 +306,16 @@ export default function GroupDetails({ route }) {
 
   const filterExpensesByCategory = (category) => {
     if (category === "All") {
-      setExpenses(expenses);
+      setExpenses(allExpenses);
       return;
     } else {
-      const filteredExpenses = expenses.filter(
+      //console.log("Stap 2: Expenses:", allExpenses);
+      const filteredExpenses = allExpenses.filter(
         (expense) => expense.category.toLowerCase() === category.toLowerCase()
       );
       setExpenses(filteredExpenses);
-      console.log("Filtered Expenses:", filteredExpenses);
+      //console.log("Stap 3: Filtered Expenses:", filteredExpenses);
+      //console.log("Filtered Expenses:", filteredExpenses);
     }
   };
 
@@ -337,9 +343,12 @@ export default function GroupDetails({ route }) {
     fetchCurrencies().then((data) => setCurrencies(data));
     fetchGroupDetails();
     fetchExpenses();
+  }, [navigation, modalVisible, groupId]);
+
+  useEffect(() => {
     const total = expenses.reduce((acc, expense) => acc + expense.amount, 0);
     setTotalExpenses(total);
-  }, [navigation, modalVisible, groupId, expenses]);
+  }, [expenses]); // This effect is only concerned with changes in `expenses`
 
   return (
     <View style={[styles.container, { marginTop: -25 }]}>
@@ -374,6 +383,14 @@ export default function GroupDetails({ route }) {
         onRequestClose={() => setCategoryModalVisible(false)}>
         <View style={[styles.centeredView2]}>
           <View style={[styles.modalView]}>
+            <TouchableOpacity
+              style={styles.filterModalButton}
+              onPress={() => {
+                filterExpensesByCategory("All");
+                setCategoryModalVisible(false);
+              }}>
+              <Text style={styles.textStyle}>All</Text>
+            </TouchableOpacity>
             {Object.entries(Categories).map(([key, value]) => (
               <TouchableOpacity
                 key={key}
@@ -393,7 +410,9 @@ export default function GroupDetails({ route }) {
           </View>
         </View>
       </Modal>
-
+      {(!expenses || expenses.length === 0) && (
+        <Text>There are no expenses</Text>
+      )}
       <FlatList
         data={expenses}
         renderItem={({ item }) => (
