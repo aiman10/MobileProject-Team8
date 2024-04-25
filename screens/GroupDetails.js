@@ -63,7 +63,10 @@ export default function GroupDetails({ route }) {
   const navigation = useNavigation();
   const [categoryFilter, setCategoryFilter] = useState(false);
   const gotToExpenseDetails = (expenseId) => {
-    navigation.navigate("ExpenseDetails", { expenseId: expenseId });
+    navigation.navigate("ExpenseDetails", {
+      expenseId: expenseId,
+      onExpenseDeleted: fetchExpenses,
+    });
   };
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
@@ -89,24 +92,6 @@ export default function GroupDetails({ route }) {
         );
       },
     },
-  ];
-
-  const categoryFilterOptions = [
-    {
-      label: "All",
-      onPress: () => {
-        setCategoryFilter(false);
-        fetchExpenses();
-      },
-    },
-    //impport from Categories.js
-    ...Object.entries(Categories).map(([key, value]) => ({
-      label: value,
-      onPress: () => {
-        setCategoryFilter(false);
-        filterExpensesByCategory(key);
-      },
-    })),
   ];
 
   const fetchGroupDetails = async () => {
@@ -348,7 +333,14 @@ export default function GroupDetails({ route }) {
   useEffect(() => {
     const total = expenses.reduce((acc, expense) => acc + expense.amount, 0);
     setTotalExpenses(total);
-  }, [expenses]); // This effect is only concerned with changes in `expenses`
+  }, [expenses]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Fetch expenses whenever the screen is focused and possibly after coming back from ExpenseDetails
+      fetchExpenses();
+    }, [])
+  );
 
   return (
     <View style={[styles.container, { marginTop: -25 }]}>

@@ -6,29 +6,102 @@ import {
   Modal,
   StyleSheet,
   TouchableOpacity,
+  Alert,
+  Pressable,
 } from "react-native";
+
 import styles from "../style/styles.js";
-import { db } from "../firebase/Config";
-import { doc, getDoc } from "firebase/firestore";
+import { EXPENSES_REF, GROUP_EXPENSES_REF, db } from "../firebase/Config";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  doc,
+  getDoc,
+  deleteDoc,
+} from "firebase/firestore";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import DropdownMenu from "../components/DropdownMenu.js";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function ExpenseDetails({ route }) {
   const { expenseId } = route.params;
   const [expenseDetails, setExpenseDetails] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const navigation = useNavigation();
+
+  const menuOptions = [
+    {
+      label: "Delete Expense",
+      onPress: () => {
+        Alert.alert(
+          "Delete Expense",
+          "Are you sure you want to delete this expense?",
+          [
+            {
+              text: "Cancel",
+              onPress: () => setDeleteModalVisible(false),
+            },
+            {
+              text: "Delete",
+              onPress: () => {
+                deleteExpense();
+              },
+            },
+          ]
+        );
+      },
+    },
+  ];
+
+  const fetchExpenseDetails = async () => {
+    const expenseRef = doc(db, "expenses", expenseId);
+    const expenseSnap = await getDoc(expenseRef);
+    if (expenseSnap.exists()) {
+      setExpenseDetails(expenseSnap.data());
+    } else {
+      console.log("No such document!");
+    }
+  };
 
   useEffect(() => {
-    const fetchExpenseDetails = async () => {
-      const expenseRef = doc(db, "expenses", expenseId);
-      const expenseSnap = await getDoc(expenseRef);
-      if (expenseSnap.exists()) {
-        setExpenseDetails(expenseSnap.data());
-      } else {
-        console.log("No such document!");
-      }
-    };
+    navigation.setOptions({
+      headerRight: () => (
+        <>
+          <Pressable onPress={() => setDeleteModalVisible(true)}>
+            <Ionicons
+              name="settings"
+              size={24}
+              color="black"
+              style={{ marginRight: 15 }}
+            />
+          </Pressable>
+          <DropdownMenu
+            isVisible={deleteModalVisible}
+            menuOptions={menuOptions}
+            onClose={() => setDeleteModalVisible(false)}
+          />
+        </>
+      ),
+    });
 
     fetchExpenseDetails();
-  }, [expenseId]);
+  }, [expenseId, navigation, deleteModalVisible]);
+
+  const deleteExpense = async () => {
+    const expenseRef = doc(db, "expenses", expenseId);
+    try {
+      await deleteDoc(expenseRef);
+      navigation.goBack();
+      route.params.onExpenseDeleted?.();
+    } catch (error) {
+      console.error("Error deleting document: ", error);
+      Alert.alert("Error", "There was a problem deleting the expense.");
+    }
+  };
 
   return (
     <View style={styles.container}>
