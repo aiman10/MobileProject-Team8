@@ -11,6 +11,7 @@ import { useState } from "react";
 import DropdownMenu from "./components/DropdownMenu";
 import { logout, signIn } from "./components/Auth";
 import LoadingGIF from "./components/Loading";
+import UserSettings from "./screens/UserSettings";
 
 const Stack = createStackNavigator();
 
@@ -29,6 +30,17 @@ export default function App({}) {
           options={{
             headerLeft: () => null,
             title: "Groups",
+          }}
+        />
+
+        <Stack.Screen
+          name="UserSettings"
+          component={UserSettings}
+          options={{
+            title: "Settings",
+            headerStyle: {
+              backgroundColor: "#46467A",
+            },
           }}
         />
 
