@@ -46,6 +46,7 @@ export default function ProfileSettings({ navigation }) {
   const [image, setImage] = useState(null);
   const auth = getAuth();
   const user = auth.currentUser;
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     //console.log("User useEffect:", user.uid);
@@ -56,7 +57,8 @@ export default function ProfileSettings({ navigation }) {
     const userRef = doc(db, USERS_REF, user.uid);
     const userSnapshot = await getDoc(userRef);
     if (userSnapshot.exists()) {
-      const userData = userSnapshot.data();
+      const data = userSnapshot.data();
+      setUserData(data);
       //console.log("User data:", userData);
     }
   };
@@ -136,7 +138,7 @@ export default function ProfileSettings({ navigation }) {
     if (!newUsername && !newEmail && !newPassword && !image) {
       Alert.alert("Please fill in the fields to update your profile.");
     }
-    //Alert.alert("Profile updated successfully");
+    fetchUser();
   };
 
   const handleDeleteAccount = async () => {
@@ -204,8 +206,21 @@ export default function ProfileSettings({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { marginTop: -50 }]}>
       <Text style={styles.title}>Profile Settings</Text>
+
+      <View style={styles.userInfoSection}>
+        <Image
+          source={{ uri: userData?.userImage }}
+          style={styles.userAvatar}
+        />
+        <Text style={styles.userInfoText}>
+          Username: {userData?.username || "Not set"}
+        </Text>
+        <Text style={styles.userInfoText}>
+          Email: {user?.email || "Not set"}
+        </Text>
+      </View>
       <TextInput
         style={styles.input}
         placeholder="New Username"
@@ -226,12 +241,24 @@ export default function ProfileSettings({ navigation }) {
         onChangeText={setNewPassword}
         secureTextEntry={true}
       />
-      <Button title="Change Image" onPress={pickImage} />
 
-      <Button title="Take New Photo" onPress={takePhoto} />
-      {image && (
-        <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
-      )}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 10,
+          marginTop: 10,
+        }}>
+        <View style={{ marginRight: 25 }}>
+          <Button title="Change Image" onPress={pickImage} />
+        </View>
+
+        <View style={{ marginLeft: 25 }}>
+          <Button title="Take New Photo" onPress={takePhoto} />
+        </View>
+      </View>
+
       <Pressable style={styles.button} onPress={handleUpdateProfile}>
         <Text style={styles.buttonText}>Update Profile</Text>
       </Pressable>

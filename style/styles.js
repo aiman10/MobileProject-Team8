@@ -321,4 +321,21 @@ export default StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
+  userInfoSection: {
+    alignItems: "center",
+    marginBottom: 20,
+    // add other styles as needed
+  },
+  userAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50, // This will create a round effect for the image
+    marginBottom: 10,
+    // add other styles as needed
+  },
+  userInfoText: {
+    fontSize: 16,
+    marginBottom: 5,
+    // add other styles as needed
+  },
 });
