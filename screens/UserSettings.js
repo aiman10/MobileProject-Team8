@@ -15,8 +15,10 @@ import {
   updatePassword,
   getAuth,
   sendEmailVerification,
+  deleteUser,
 } from "firebase/auth";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { logout } from "../components/Auth";
 
 import * as ImagePicker from "expo-image-picker";
 import styles from "../style/styles.js";
@@ -32,7 +34,6 @@ import {
   getDoc,
   deleteDoc,
 } from "firebase/firestore";
-import { deleteUser } from "../components/Auth.js";
 import { auth, db, USERS_REF } from "../firebase/Config";
 import { set } from "firebase/database";
 
@@ -96,18 +97,22 @@ export default function ProfileSettings({ navigation }) {
   };
 
   const deleteUserAccount = async () => {
-    const user = auth.currentUser;
-
     try {
-      await deleteUser(user);
-      console.log("User account deleted successfully.");
-
-      const userRef = doc(db, "users", user.uid);
+      if (!user) {
+        console.error("No user to delete");
+        Alert.alert("Error", "No user found.");
+        return;
+      }
+      const userRef = doc(db, USERS_REF, user.uid);
       await deleteDoc(userRef);
-      console.log("User data deleted from Firestore successfully.");
+      await user.delete();
+      deleteUser(auth.currentUser);
+      console.log("User account deleted successfully.");
+      //logout after deleting account
+      logout();
+      navigation.navigate("FrontPage");
     } catch (error) {
-      console.error("Error deleting user account: ", error);
-      throw error;
+      console.error("Error deleting user account:", error);
     }
   };
 
