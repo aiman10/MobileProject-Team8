@@ -386,5 +386,22 @@ export default StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "stretch",
     paddingTop: 50,
+    userInfoSection: {
+      alignItems: "center",
+      marginBottom: 20,
+      // add other styles as needed
+    },
+  },
+  userAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50, // This will create a round effect for the image
+    marginBottom: 10,
+    // add other styles as needed
+  },
+  userInfoText: {
+    fontSize: 16,
+    marginBottom: 5,
+    // add other styles as needed
   },
 });

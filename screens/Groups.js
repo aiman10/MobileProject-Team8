@@ -76,16 +76,14 @@ export default function Groups({}) {
 
   const menuOptions = [
     {
+      label: "User Settings",
+      onPress: () => navigation.navigate("UserSettings"),
+    },
+    {
       label: "Logout",
       onPress: () => handlePressLogout(),
     },
   ];
-
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchUserGroups();
-    }, [])
-  );
 
   useEffect(
     () => {
@@ -259,6 +257,7 @@ export default function Groups({}) {
     logout();
     navigation.navigate("FrontPage");
   };
+
 
   const pickImage = async () => {
     try {

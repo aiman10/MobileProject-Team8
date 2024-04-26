@@ -13,6 +13,8 @@ import DropdownMenu from "./components/DropdownMenu";
 import { logout, signIn } from "./components/Auth";
 import LoadingGIF from "./components/Loading";
 import styles from "./style/styles.js";
+import UserSettings from "./screens/UserSettings";
+
 const Stack = createStackNavigator();
 
 export default function App({}) {
@@ -40,7 +42,15 @@ export default function App({}) {
             },
           }}
         />
-
+        <Stack.Screen
+          options={{
+            headerStyle: {
+              backgroundColor: "#46467A",
+            },
+          }}
+          name="UserSettings"
+          component={UserSettings}
+        />
         <Stack.Screen
           options={{
             headerStyle: {
