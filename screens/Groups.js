@@ -85,6 +85,12 @@ export default function Groups({}) {
     },
   ];
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserGroups();
+    }, [])
+  );
+
   useEffect(
     () => {
       getCurrentUserName();
@@ -257,7 +263,6 @@ export default function Groups({}) {
     logout();
     navigation.navigate("FrontPage");
   };
-
 
   const pickImage = async () => {
     try {
