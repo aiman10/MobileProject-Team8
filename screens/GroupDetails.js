@@ -40,6 +40,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 import { all } from "axios";
+import { ScrollView } from "react-native-gesture-handler";
 
 export default function GroupDetails({ route }) {
   const { groupId } = route.params;
@@ -61,7 +62,7 @@ export default function GroupDetails({ route }) {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [uploadImage, setUploadImage] = useState(null);
   const navigation = useNavigation();
-  const [categoryFilter, setCategoryFilter] = useState(false);
+  const [selectedPayer, setSelectedPayer] = useState(null);
   const gotToExpenseDetails = (expenseId) => {
     navigation.navigate("ExpenseDetails", {
       expenseId: expenseId,
@@ -181,7 +182,7 @@ export default function GroupDetails({ route }) {
       title: expenseTitle,
       category: selectedCategory,
       groupId: groupId,
-      paidBy: auth.currentUser.uid, // Assuming the current user is paying TODO
+      paidBy: selectedPayer, // Assuming the current user is paying TODO
       splitBetween: selectedMembers,
       currency: selectedCurrency,
       date: date,
@@ -269,6 +270,7 @@ export default function GroupDetails({ route }) {
     setExpenseTitle("");
     setSelectedMembers([]);
     setSelectedCategory("");
+    setSelectedPayer("");
   };
 
   const onDateChange = (event, selectedDate) => {
@@ -416,7 +418,9 @@ export default function GroupDetails({ route }) {
                 {item.amount.toFixed(2)}
               </Text>
               <Text style={styles.expenseDate}>{formatDate(item.date)}</Text>
-              <Text style={styles.paidByText}>paid by</Text>
+              <Text style={styles.paidByText}>
+                paid by {item.paidBy.substring(0, 10)}
+              </Text>
             </View>
           </Pressable>
         )}
@@ -442,137 +446,163 @@ export default function GroupDetails({ route }) {
         onRequestClose={() => setExpenseModalVisible(false)}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <View style={styles.topButtonsContainer}>
-              <Pressable
-                style={[styles.modalButton2]}
-                onPress={cancelCreateExpense}>
-                <Text style={[styles.modalButtonText, { color: "#D2042D" }]}>
-                  Cancel
-                </Text>
-              </Pressable>
-              <Text style={[{ marginTop: 15 }]}>New Expense</Text>
-              <Pressable style={[styles.modalButton2]} onPress={createExpense}>
-                <Text style={[styles.modalButtonText, { color: "#28A745" }]}>
-                  Create
-                </Text>
-              </Pressable>
-            </View>
-            <TextInput
-              placeholder="Title"
-              value={expenseTitle}
-              onChangeText={setExpenseTitle}
-              style={styles.modalInput}
-            />
-
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}>
-              <Picker
-                selectedValue={selectedCurrency}
-                style={{
-                  width: "40%",
-                  marginBottom: 15,
-                }}
-                onValueChange={(itemValue, itemIndex) =>
-                  setSelectedCurrency(itemValue)
-                }>
-                {currencies.map((currency, index) => (
-                  <Picker.Item
-                    key={index}
-                    label={currency.label}
-                    value={currency.value}
-                  />
-                ))}
-              </Picker>
+            <ScrollView>
+              <View style={styles.topButtonsContainer}>
+                <Pressable
+                  style={[styles.modalButton2]}
+                  onPress={cancelCreateExpense}>
+                  <Text style={[styles.modalButtonText, { color: "#D2042D" }]}>
+                    Cancel
+                  </Text>
+                </Pressable>
+                <Text style={[{ marginTop: 15 }]}>New Expense</Text>
+                <Pressable
+                  style={[styles.modalButton2]}
+                  onPress={createExpense}>
+                  <Text style={[styles.modalButtonText, { color: "#28A745" }]}>
+                    Create
+                  </Text>
+                </Pressable>
+              </View>
               <TextInput
-                placeholder="Amount"
-                value={expenseAmount}
-                onChangeText={setExpenseAmount}
-                keyboardType="numeric"
-                style={[styles.modalInput, { width: "55%" }]}
+                placeholder="Title"
+                value={expenseTitle}
+                onChangeText={setExpenseTitle}
+                style={styles.modalInput}
               />
-            </View>
-            {showDatePicker && (
-              <DateTimePicker
-                value={date}
-                mode="date"
-                is24Hour={true}
-                display="default"
-                onChange={onDateChange}
-              />
-            )}
 
-            <Text style={styles.modalText}>Split Between</Text>
-            {members.map((member, index) => (
-              <Pressable
-                key={member}
-                style={styles.memberSelect}
-                onPress={() => handleSelectMember(member)}>
-                <Text>{member}</Text>
-                <Ionicons
-                  name={
-                    selectedMembers.includes(member)
-                      ? "checkbox"
-                      : "square-outline"
-                  }
-                  size={24}
-                  color="black"
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}>
+                <Picker
+                  selectedValue={selectedCurrency}
+                  style={{
+                    width: "40%",
+                    marginBottom: 15,
+                  }}
+                  onValueChange={(itemValue, itemIndex) =>
+                    setSelectedCurrency(itemValue)
+                  }>
+                  {currencies.map((currency, index) => (
+                    <Picker.Item
+                      key={index}
+                      label={currency.label}
+                      value={currency.value}
+                    />
+                  ))}
+                </Picker>
+                <TextInput
+                  placeholder="Amount"
+                  value={expenseAmount}
+                  onChangeText={setExpenseAmount}
+                  keyboardType="numeric"
+                  style={[styles.modalInput, { width: "55%" }]}
                 />
-              </Pressable>
-            ))}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginTop: 25,
-              }}>
-              <Text style={[{ flex: 1 }]}>Category:</Text>
-              <Picker
-                selectedValue={selectedCategory}
-                onValueChange={(itemValue, itemIndex) =>
-                  setSelectedCategory(itemValue)
-                }
-                style={{ flex: 2, height: 50 }} // Adjust the style as needed
-              >
-                {Object.entries(Categories).map(([key, value]) => (
-                  <Picker.Item key={key} label={value} value={key} />
-                ))}
-              </Picker>
-            </View>
-            <Pressable
-              onPress={showDatepicker}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: pressed
-                    ? "rgba(255, 255, 255, 0.2)"
-                    : "transparent",
-                  padding: 10,
-                  borderRadius: 5,
-                },
-                styles.buttonDate,
-              ]}>
-              {({ pressed }) => (
-                <Text style={styles.buttonTextDate}>
-                  {pressed
-                    ? `Selecting Date...`
-                    : `${date.toLocaleDateString()}`}
-                </Text>
+              </View>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={date}
+                  mode="date"
+                  is24Hour={true}
+                  display="default"
+                  onChange={onDateChange}
+                />
               )}
-            </Pressable>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginTop: 20,
-              }}>
-              <Button title="Upload Image" onPress={pickImage} />
-              <Button title="Take Photo" onPress={takePhoto} />
-            </View>
+
+              <Text style={styles.modalText}>Split Between</Text>
+              {members.map((member, index) => (
+                <Pressable
+                  key={member}
+                  style={styles.memberSelect}
+                  onPress={() => handleSelectMember(member)}>
+                  <Text>{member}</Text>
+                  <Ionicons
+                    name={
+                      selectedMembers.includes(member)
+                        ? "checkbox"
+                        : "square-outline"
+                    }
+                    size={24}
+                    color="black"
+                  />
+                </Pressable>
+              ))}
+
+              <Text style={styles.modalText}>Paid By</Text>
+              {members.map((member, index) => (
+                <Pressable
+                  key={member}
+                  style={[
+                    styles.memberSelect,
+                    selectedPayer === member && styles.selectedMember, // Add a style for the selected state
+                  ]}
+                  onPress={() => setSelectedPayer(member)}>
+                  <Text>{member}</Text>
+                  <Ionicons
+                    name={
+                      selectedPayer === member
+                        ? "radio-button-on"
+                        : "radio-button-off"
+                    }
+                    size={24}
+                    color={selectedPayer === member ? "#28A745" : "grey"} // Change color based on selection
+                  />
+                </Pressable>
+              ))}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginTop: 25,
+                }}>
+                <Text style={[{ flex: 1 }]}>Category:</Text>
+                <Picker
+                  selectedValue={selectedCategory}
+                  onValueChange={(itemValue, itemIndex) =>
+                    setSelectedCategory(itemValue)
+                  }
+                  style={{ flex: 2, height: 50 }} // Adjust the style as needed
+                >
+                  {Object.entries(Categories).map(([key, value]) => (
+                    <Picker.Item key={key} label={value} value={key} />
+                  ))}
+                </Picker>
+              </View>
+              <Pressable
+                onPress={showDatepicker}
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: pressed
+                      ? "rgba(255, 255, 255, 0.2)"
+                      : "transparent",
+                    padding: 10,
+                    borderRadius: 5,
+                  },
+                  styles.buttonDate,
+                ]}>
+                {({ pressed }) => (
+                  <Text style={styles.buttonTextDate}>
+                    {pressed
+                      ? `Selecting Date...`
+                      : `${date.toLocaleDateString()}`}
+                  </Text>
+                )}
+              </Pressable>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginTop: 20,
+                }}>
+                <Button title="Upload Image" onPress={pickImage} />
+                <Button title="Take Photo" onPress={takePhoto} />
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
