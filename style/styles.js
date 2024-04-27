@@ -405,4 +405,23 @@ export default StyleSheet.create({
     marginBottom: 5,
     // add other styles as needed
   },
+  tabContainer: {
+    flexDirection: "row",
+    paddingBottom: 10,
+  },
+  tab: {
+    flex: 1,
+    alignItems: "center",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "grey",
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: "navy", // Use your primary color here
+  },
+  tabText: {
+    fontWeight: "bold",
+    color: "grey", // Use your primary text color here
+  },
 });

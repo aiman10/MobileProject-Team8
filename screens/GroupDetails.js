@@ -70,6 +70,7 @@ export default function GroupDetails({ route }) {
     });
   };
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [activeScreen, setActiveScreen] = useState("expenses");
 
   const menuOptions = [
     {
@@ -347,29 +348,54 @@ export default function GroupDetails({ route }) {
   return (
     <View style={[styles.container, { marginTop: -25 }]}>
       <Text style={styles.title}>{groupName}</Text>
+      <View style={styles.tabContainer}>
+        <Pressable
+          style={[styles.tab, activeScreen === "expenses" && styles.activeTab]}
+          onPress={() => setActiveScreen("expenses")}>
+          <Text style={styles.tabText}>Expenses</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.tab, activeScreen === "members" && styles.activeTab]}
+          onPress={() => setActiveScreen("members")}>
+          <Text style={styles.tabText}>Members</Text>
+        </Pressable>
+      </View>
 
-      {(!members || members.length === 0) && (
-        <Text>No members in this group</Text>
+      {activeScreen === "expenses" ? (
+        <>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => setCategoryModalVisible(true)}>
+            <FontAwesome name="filter" size={24} color="black" />
+          </TouchableOpacity>
+          <FlatList
+            data={expenses}
+            renderItem={({ item }) => (
+              <Pressable onPress={() => gotToExpenseDetails(item.id)}>
+                <View style={styles.expenseItem}>
+                  <Text style={styles.expenseTitle}>{item.title}</Text>
+                  <Text style={styles.expenseAmount}>
+                    {currencySymbols[groupCurrency.currency] || "$"}{" "}
+                    {item.amount.toFixed(2)}
+                  </Text>
+                  <Text style={styles.expenseDate}>
+                    {formatDate(item.date)}
+                  </Text>
+                  <Text style={styles.paidByText}>
+                    paid by {item.paidBy.substring(0, 10)}
+                  </Text>
+                </View>
+              </Pressable>
+            )}
+            keyExtractor={(item) => item.id}
+          />
+        </>
+      ) : (
+        <>
+          <View></View>
+        </>
       )}
-      <FlatList
-        // style={{ marginBottom: -350 }}
-        data={members}
-        renderItem={({ item, index }) => (
-          <View style={{ flexDirection: "row" }}>
-            <Text>
-              {item}
-              {index < members.length - 1 ? ", " : ""}
-            </Text>
-          </View>
-        )}
-        keyExtractor={(item, index) => `${item}-${index}`}
-        horizontal={true}
-      />
-      <TouchableOpacity
-        style={styles.filterButton}
-        onPress={() => setCategoryModalVisible(true)}>
-        <FontAwesome name="filter" size={24} color="black" />
-      </TouchableOpacity>
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -407,25 +433,7 @@ export default function GroupDetails({ route }) {
       {(!expenses || expenses.length === 0) && (
         <Text>There are no expenses</Text>
       )}
-      <FlatList
-        data={expenses}
-        renderItem={({ item }) => (
-          <Pressable onPress={() => gotToExpenseDetails(item.id)}>
-            <View style={styles.expenseItem}>
-              <Text style={styles.expenseTitle}>{item.title}</Text>
-              <Text style={styles.expenseAmount}>
-                {currencySymbols[groupCurrency.currency] || "$"}{" "}
-                {item.amount.toFixed(2)}
-              </Text>
-              <Text style={styles.expenseDate}>{formatDate(item.date)}</Text>
-              <Text style={styles.paidByText}>
-                paid by {item.paidBy.substring(0, 10)}
-              </Text>
-            </View>
-          </Pressable>
-        )}
-        keyExtractor={(item) => item.id}
-      />
+
       <View style={styles.totalExpensesContainer}>
         <Text style={styles.totalExpensesText}>Total Expenses:</Text>
         <Text style={styles.totalExpensesText}>
