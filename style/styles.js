@@ -397,6 +397,7 @@ export default StyleSheet.create({
     height: 100,
     borderRadius: 50, // This will create a round effect for the image
     marginBottom: 10,
+    marginLeft: 60,
     // add other styles as needed
   },
   userInfoText: {
