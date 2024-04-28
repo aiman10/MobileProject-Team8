@@ -145,6 +145,7 @@ export default function GroupDetails({ route }) {
     return expensesData;
   };
 
+  //Very important function!
   const calculateMemberBalances = async () => {
     const expenses = await getExpensesByGroup();
     const memberBalances = {};
@@ -242,6 +243,7 @@ export default function GroupDetails({ route }) {
     expensesData.sort((a, b) => b.date.seconds - a.date.seconds);
     setExpenses(expensesData);
     setAllExpenses(expensesData);
+    calculateMemberBalances();
     //console.log("Stap 1: Expenses:", expenses);
   };
 
@@ -281,6 +283,7 @@ export default function GroupDetails({ route }) {
       setSelectedMembers([]);
       setSelectedCategory("");
       fetchExpenses();
+      setSelectedPayer("");
       calculateMemberBalances();
     } catch (error) {
       console.error("Error adding expense", error);
@@ -390,41 +393,65 @@ export default function GroupDetails({ route }) {
   };
 
   const MemberBalanceGraph = ({ membersWithBalances, maxAbsBalance }) => {
-    const svgHeight = 200; // Total height of the SVG container
-    const svgWidth = 300; // Total width of the SVG container
+    // Constants for padding and graph dimensions
+    const svgPadding = 20; // Padding value can be adjusted as needed
+    const svgHeight = 200 + svgPadding * 2; // Increased SVG height to accommodate text
+    const svgWidth = 300; // SVG width
     const barWidth = svgWidth / membersWithBalances.length; // Width of each bar
     const chartCenter = svgHeight / 2; // Center line of the chart
+    const minBarHeight = 15; // Minimum height of the bar to determine spacing
 
     return (
       <Svg height={svgHeight} width={svgWidth}>
         {membersWithBalances.map((member, index) => {
           const barHeight =
-            (Math.abs(member.balance) / maxAbsBalance) * (svgHeight / 2);
+            (Math.abs(member.balance) / maxAbsBalance) *
+            (chartCenter - svgPadding);
           const barX = barWidth * index;
           const barY =
             member.balance >= 0 ? chartCenter - barHeight : chartCenter;
-          const fillColor = member.balance >= 0 ? "green" : "red";
-          const textY =
+          const fillColor = member.balance >= 0 ? "#9ED6A5" : "#FFA593";
+          // Calculate if additional space is needed for the name based on the bar height
+          const additionalSpace = barHeight < minBarHeight ? 10 : 0;
+
+          // Adjusted textY for balance inside the bar
+          const textYInsideBar =
             member.balance >= 0
-              ? barY + barHeight / 2 + 5 / 2
-              : barY + barHeight - 5;
+              ? barY + barHeight - 10 // For positive balance, near the bottom of the green bar
+              : barY + 20; // For negative balance, near the top of the red bar
+
+          // Keep the name position calculation as is and add additionalSpace if needed
+          const nameY =
+            member.balance >= 0
+              ? chartCenter - barHeight - 15 - additionalSpace // Move the name up if the bar is small
+              : chartCenter + barHeight + 15 + additionalSpace; // Move the name down if the bar is small
 
           return (
             <React.Fragment key={member.name}>
               <Rect
-                x={barX + 5} // 5 is for padding
+                x={barX + 5}
                 y={barY}
-                width={barWidth - 10} // 10 is the total padding for left and right
-                height={barHeight}
+                width={barWidth - 10}
+                height={Math.max(barHeight, minBarHeight)} // Ensure the bar is not too small
                 fill={fillColor}
               />
               <SvgText
                 x={barX + barWidth / 2}
-                y={textY} // Adjusted for inside the bar
+                y={textYInsideBar} // Adjusted for inside the bar
                 fontSize="13"
-                fill="black" // White text for better visibility on colored bars
+                fill="black" // White text for better visibility inside the bar
                 textAnchor="middle">
-                {`${member.balance.toFixed(2)}`}
+                {`${member.balance.toFixed(0)} ${
+                  currencySymbols[groupCurrency.currency] || "$"
+                }`}
+              </SvgText>
+              <SvgText
+                x={barX + barWidth / 2}
+                y={nameY} // Name position above or below the bar, with dynamic spacing
+                fontSize="13"
+                fill="black"
+                textAnchor="middle">
+                {member.name}
               </SvgText>
             </React.Fragment>
           );
@@ -515,10 +542,13 @@ export default function GroupDetails({ route }) {
             )}
             keyExtractor={(item) => item.id}
           />
+          {(!expenses || expenses.length === 0) && (
+            <RNText>There are no expenses</RNText>
+          )}
         </>
       ) : (
         <>
-          <View style={[{ marginBottom: 250 }, { marginTop: 100 }]}>
+          <View style={[{ marginBottom: 300 }, { marginTop: 10 }]}>
             <MemberBalanceGraph
               membersWithBalances={memberBalances}
               maxAbsBalance={maxAbsBalance}
@@ -561,9 +591,6 @@ export default function GroupDetails({ route }) {
           </View>
         </View>
       </Modal>
-      {(!expenses || expenses.length === 0) && (
-        <RNText>There are no expenses</RNText>
-      )}
 
       <View style={styles.totalExpensesContainer}>
         <RNText style={styles.totalExpensesText}>Total Expenses:</RNText>
