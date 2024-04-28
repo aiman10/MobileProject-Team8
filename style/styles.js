@@ -407,7 +407,7 @@ export default StyleSheet.create({
   },
   tabContainer: {
     flexDirection: "row",
-    paddingBottom: 10,
+    paddingBottom: 25,
   },
   tab: {
     flex: 1,

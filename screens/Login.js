@@ -18,6 +18,7 @@ export default function Login({ navigation }) {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         setIsLoggedIn(true);
+        navigation.replace("Groups");
       } else {
         setIsLoggedIn(false);
       }

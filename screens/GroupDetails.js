@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
   Pressable,
   Alert,
   Button,
   TextInput,
   FlatList,
+  Text as RNText,
 } from "react-native";
 import styles from "../style/styles.js";
 import {
@@ -41,6 +41,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 import { all } from "axios";
 import { ScrollView } from "react-native-gesture-handler";
+import { Svg, Rect, Circle, Text as SvgText } from "react-native-svg";
 
 export default function GroupDetails({ route }) {
   const { groupId } = route.params;
@@ -71,6 +72,7 @@ export default function GroupDetails({ route }) {
   };
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [activeScreen, setActiveScreen] = useState("expenses");
+  const [memberBalances, setMemberBalances] = useState(null);
 
   const menuOptions = [
     {
@@ -95,6 +97,18 @@ export default function GroupDetails({ route }) {
       },
     },
   ];
+
+  const membersWithBalances = [
+    { name: "Member 1", balance: 25 },
+    { name: "Member 2", balance: -20 },
+    { name: "Member 3", balance: 50 },
+    { name: "Member 4", balance: -100 },
+    // ... other members
+  ];
+
+  const maxAbsBalance = Math.max(
+    ...membersWithBalances.map((member) => Math.abs(member.balance))
+  );
 
   const fetchGroupDetails = async () => {
     const groupRef = doc(db, GROUPS_REF, groupId);
@@ -307,6 +321,50 @@ export default function GroupDetails({ route }) {
     }
   };
 
+  const MemberBalanceGraph = ({ membersWithBalances, maxAbsBalance }) => {
+    const svgHeight = 200; // Total height of the SVG container
+    const svgWidth = 300; // Total width of the SVG container
+    const barWidth = svgWidth / membersWithBalances.length; // Width of each bar
+    const chartCenter = svgHeight / 2; // Center line of the chart
+
+    return (
+      <Svg height={svgHeight} width={svgWidth}>
+        {membersWithBalances.map((member, index) => {
+          const barHeight =
+            (Math.abs(member.balance) / maxAbsBalance) * (svgHeight / 2);
+          const barX = barWidth * index;
+          const barY =
+            member.balance >= 0 ? chartCenter - barHeight : chartCenter;
+          const fillColor = member.balance >= 0 ? "green" : "red";
+          const textY =
+            member.balance >= 0
+              ? barY + barHeight / 2 + 5 / 2
+              : barY + barHeight - 5;
+
+          return (
+            <React.Fragment key={member.name}>
+              <Rect
+                x={barX + 5} // 5 is for padding
+                y={barY}
+                width={barWidth - 10} // 10 is the total padding for left and right
+                height={barHeight}
+                fill={fillColor}
+              />
+              <SvgText
+                x={barX + barWidth / 2}
+                y={textY} // Adjusted for inside the bar
+                fontSize="16"
+                fill="black" // White text for better visibility on colored bars
+                textAnchor="middle">
+                {`${member.balance}€`}
+              </SvgText>
+            </React.Fragment>
+          );
+        })}
+      </Svg>
+    );
+  };
+
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -347,17 +405,17 @@ export default function GroupDetails({ route }) {
 
   return (
     <View style={[styles.container, { marginTop: -25 }]}>
-      <Text style={styles.title}>{groupName}</Text>
+      <RNText style={styles.title}>{groupName}</RNText>
       <View style={styles.tabContainer}>
         <Pressable
           style={[styles.tab, activeScreen === "expenses" && styles.activeTab]}
           onPress={() => setActiveScreen("expenses")}>
-          <Text style={styles.tabText}>Expenses</Text>
+          <RNText style={styles.tabText}>Expenses</RNText>
         </Pressable>
         <Pressable
           style={[styles.tab, activeScreen === "members" && styles.activeTab]}
           onPress={() => setActiveScreen("members")}>
-          <Text style={styles.tabText}>Members</Text>
+          <RNText style={styles.tabText}>Members</RNText>
         </Pressable>
       </View>
 
@@ -373,17 +431,17 @@ export default function GroupDetails({ route }) {
             renderItem={({ item }) => (
               <Pressable onPress={() => gotToExpenseDetails(item.id)}>
                 <View style={styles.expenseItem}>
-                  <Text style={styles.expenseTitle}>{item.title}</Text>
-                  <Text style={styles.expenseAmount}>
+                  <RNText style={styles.expenseTitle}>{item.title}</RNText>
+                  <RNText style={styles.expenseAmount}>
                     {currencySymbols[groupCurrency.currency] || "$"}{" "}
                     {item.amount.toFixed(2)}
-                  </Text>
-                  <Text style={styles.expenseDate}>
+                  </RNText>
+                  <RNText style={styles.expenseDate}>
                     {formatDate(item.date)}
-                  </Text>
-                  <Text style={styles.paidByText}>
+                  </RNText>
+                  <RNText style={styles.paidByText}>
                     paid by {item.paidBy.substring(0, 10)}
-                  </Text>
+                  </RNText>
                 </View>
               </Pressable>
             )}
@@ -392,7 +450,12 @@ export default function GroupDetails({ route }) {
         </>
       ) : (
         <>
-          <View></View>
+          <View style={[{ marginBottom: 250 }, { marginTop: 100 }]}>
+            <MemberBalanceGraph
+              membersWithBalances={membersWithBalances}
+              maxAbsBalance={maxAbsBalance}
+            />
+          </View>
         </>
       )}
 
@@ -409,7 +472,7 @@ export default function GroupDetails({ route }) {
                 filterExpensesByCategory("All");
                 setCategoryModalVisible(false);
               }}>
-              <Text style={styles.textStyle}>All</Text>
+              <RNText style={styles.textStyle}>All</RNText>
             </TouchableOpacity>
             {Object.entries(Categories).map(([key, value]) => (
               <TouchableOpacity
@@ -419,27 +482,27 @@ export default function GroupDetails({ route }) {
                   filterExpensesByCategory(key);
                   setCategoryModalVisible(false);
                 }}>
-                <Text style={styles.textStyle}>{value}</Text>
+                <RNText style={styles.textStyle}>{value}</RNText>
               </TouchableOpacity>
             ))}
             <TouchableOpacity
               style={[styles.closeModalButton]}
               onPress={() => setCategoryModalVisible(false)}>
-              <Text style={styles.textStyle}>Close</Text>
+              <RNText style={styles.textStyle}>Close</RNText>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
       {(!expenses || expenses.length === 0) && (
-        <Text>There are no expenses</Text>
+        <RNText>There are no expenses</RNText>
       )}
 
       <View style={styles.totalExpensesContainer}>
-        <Text style={styles.totalExpensesText}>Total Expenses:</Text>
-        <Text style={styles.totalExpensesText}>
+        <RNText style={styles.totalExpensesText}>Total Expenses:</RNText>
+        <RNText style={styles.totalExpensesText}>
           {currencySymbols[groupCurrency.currency] || "$"}
           {totalExpenses.toFixed(2)}
-        </Text>
+        </RNText>
       </View>
       <TouchableOpacity
         style={styles.roundButton}
@@ -459,17 +522,19 @@ export default function GroupDetails({ route }) {
                 <Pressable
                   style={[styles.modalButton2]}
                   onPress={cancelCreateExpense}>
-                  <Text style={[styles.modalButtonText, { color: "#D2042D" }]}>
+                  <RNText
+                    style={[styles.modalButtonText, { color: "#D2042D" }]}>
                     Cancel
-                  </Text>
+                  </RNText>
                 </Pressable>
-                <Text style={[{ marginTop: 15 }]}>New Expense</Text>
+                <RNText style={[{ marginTop: 15 }]}>New Expense</RNText>
                 <Pressable
                   style={[styles.modalButton2]}
                   onPress={createExpense}>
-                  <Text style={[styles.modalButtonText, { color: "#28A745" }]}>
+                  <RNText
+                    style={[styles.modalButtonText, { color: "#28A745" }]}>
                     Create
-                  </Text>
+                  </RNText>
                 </Pressable>
               </View>
               <TextInput
@@ -520,13 +585,13 @@ export default function GroupDetails({ route }) {
                 />
               )}
 
-              <Text style={styles.modalText}>Split Between</Text>
+              <RNText style={styles.modalText}>Split Between</RNText>
               {members.map((member, index) => (
                 <Pressable
                   key={member}
                   style={styles.memberSelect}
                   onPress={() => handleSelectMember(member)}>
-                  <Text>{member}</Text>
+                  <RNText>{member}</RNText>
                   <Ionicons
                     name={
                       selectedMembers.includes(member)
@@ -539,7 +604,7 @@ export default function GroupDetails({ route }) {
                 </Pressable>
               ))}
 
-              <Text style={styles.modalText}>Paid By</Text>
+              <RNText style={styles.modalText}>Paid By</RNText>
               {members.map((member, index) => (
                 <Pressable
                   key={member}
@@ -548,7 +613,7 @@ export default function GroupDetails({ route }) {
                     selectedPayer === member && styles.selectedMember, // Add a style for the selected state
                   ]}
                   onPress={() => setSelectedPayer(member)}>
-                  <Text>{member}</Text>
+                  <RNText>{member}</RNText>
                   <Ionicons
                     name={
                       selectedPayer === member
@@ -567,7 +632,7 @@ export default function GroupDetails({ route }) {
                   justifyContent: "space-between",
                   marginTop: 25,
                 }}>
-                <Text style={[{ flex: 1 }]}>Category:</Text>
+                <RNText style={[{ flex: 1 }]}>Category:</RNText>
                 <Picker
                   selectedValue={selectedCategory}
                   onValueChange={(itemValue, itemIndex) =>
@@ -593,11 +658,11 @@ export default function GroupDetails({ route }) {
                   styles.buttonDate,
                 ]}>
                 {({ pressed }) => (
-                  <Text style={styles.buttonTextDate}>
+                  <RNText style={styles.buttonTextDate}>
                     {pressed
                       ? `Selecting Date...`
                       : `${date.toLocaleDateString()}`}
-                  </Text>
+                  </RNText>
                 )}
               </Pressable>
               <View
