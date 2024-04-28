@@ -111,6 +111,10 @@ export default function ExpenseDetails({ route }) {
       </Text>
       <Text style={styles.text}>Category: {expenseDetails.category}</Text>
       <Text style={styles.text}>Description: {expenseDetails.description}</Text>
+      <Text style={styles.text}>
+        {expenseDetails.paidBy} paid for:
+        {expenseDetails.splitBetween}
+      </Text>
 
       {
         //show button only if there is an image

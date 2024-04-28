@@ -72,7 +72,7 @@ export default function GroupDetails({ route }) {
   };
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [activeScreen, setActiveScreen] = useState("expenses");
-  const [memberBalances, setMemberBalances] = useState(null);
+  const [memberBalances, setMemberBalances] = useState([]);
 
   const menuOptions = [
     {
@@ -107,7 +107,7 @@ export default function GroupDetails({ route }) {
   ];
 
   const maxAbsBalance = Math.max(
-    ...membersWithBalances.map((member) => Math.abs(member.balance))
+    ...memberBalances.map((member) => Math.abs(member.balance))
   );
 
   const fetchGroupDetails = async () => {
@@ -117,11 +117,75 @@ export default function GroupDetails({ route }) {
       setGroupName(groupSnapshot.data().name);
       setMembers(groupSnapshot.data().members);
       setGroupCurrency(groupSnapshot.data());
-      //console.log(groupCurrency.currency);
+      //console.log(groupSnapshot.data());
+      calculateMemberBalances();
       setSelectedCurrency(groupSnapshot.data().currency);
     } else {
       //Alert.alert("Group not found");
     }
+  };
+
+  const getExpensesByGroup = async () => {
+    const expensesQuery = query(
+      collection(db, "expenses"),
+      where("groupId", "==", groupId)
+    );
+    const querySnapshot = await getDocs(expensesQuery);
+    const expensesData = [];
+    querySnapshot.forEach((doc) => {
+      expensesData.push({ id: doc.id, ...doc.data() });
+    });
+
+    //filter expensedata only retreive paidby, amount, splitbetween
+    expensesData.map((expense) => {
+      const { paidBy, amount, splitBetween } = expense;
+      return { paidBy, amount, splitBetween };
+    });
+    //console.log("ExpensesData:", expensesData);
+    return expensesData;
+  };
+
+  const calculateMemberBalances = async () => {
+    const expenses = await getExpensesByGroup();
+    const memberBalances = {};
+    expenses.forEach((expense, index) => {
+      const { paidBy, amount, splitBetween } = expense;
+      // Initialize the payer in the memberBalances if they don't exist
+      if (!memberBalances[paidBy]) {
+        memberBalances[paidBy] = 0;
+      }
+      // Determine how many ways the expense should be split
+      const numberOfSplits = splitBetween.includes(paidBy)
+        ? splitBetween.length
+        : splitBetween.length + 1;
+
+      // Calculate the split amount
+      const splitAmount = amount / numberOfSplits;
+      memberBalances[paidBy] += splitAmount;
+      // Adjust each member's balance
+      splitBetween.forEach((member) => {
+        if (!memberBalances[member]) {
+          memberBalances[member] = 0;
+        }
+
+        if (member !== paidBy) {
+          memberBalances[member] -= splitAmount;
+        }
+      });
+    });
+
+    const membersWithBalances = Object.entries(memberBalances).map(
+      ([name, balance]) => ({ name, balance })
+    );
+
+    console.log("****************************");
+    membersWithBalances.forEach((member, index) => {
+      console.log(
+        `Name: ${member.name}, Balance: ${member.balance.toFixed(2)}`
+      );
+    });
+    //return membersWithBalances;
+    setMemberBalances(membersWithBalances);
   };
 
   const deleteGroup = async () => {
@@ -217,6 +281,7 @@ export default function GroupDetails({ route }) {
       setSelectedMembers([]);
       setSelectedCategory("");
       fetchExpenses();
+      calculateMemberBalances();
     } catch (error) {
       console.error("Error adding expense", error);
       Alert.alert("Error", "There was an issue adding the expense.");
@@ -224,6 +289,9 @@ export default function GroupDetails({ route }) {
   };
 
   const handleSelectMember = (member) => {
+    if (member === selectedPayer) {
+      return; // Prevent adding the payer to the split list
+    }
     if (selectedMembers.includes(member)) {
       setSelectedMembers(selectedMembers.filter((m) => m !== member));
     } else {
@@ -353,10 +421,10 @@ export default function GroupDetails({ route }) {
               <SvgText
                 x={barX + barWidth / 2}
                 y={textY} // Adjusted for inside the bar
-                fontSize="16"
+                fontSize="13"
                 fill="black" // White text for better visibility on colored bars
                 textAnchor="middle">
-                {`${member.balance}€`}
+                {`${member.balance.toFixed(2)}`}
               </SvgText>
             </React.Fragment>
           );
@@ -452,7 +520,7 @@ export default function GroupDetails({ route }) {
         <>
           <View style={[{ marginBottom: 250 }, { marginTop: 100 }]}>
             <MemberBalanceGraph
-              membersWithBalances={membersWithBalances}
+              membersWithBalances={memberBalances}
               maxAbsBalance={maxAbsBalance}
             />
           </View>
@@ -584,26 +652,6 @@ export default function GroupDetails({ route }) {
                   onChange={onDateChange}
                 />
               )}
-
-              <RNText style={styles.modalText}>Split Between</RNText>
-              {members.map((member, index) => (
-                <Pressable
-                  key={member}
-                  style={styles.memberSelect}
-                  onPress={() => handleSelectMember(member)}>
-                  <RNText>{member}</RNText>
-                  <Ionicons
-                    name={
-                      selectedMembers.includes(member)
-                        ? "checkbox"
-                        : "square-outline"
-                    }
-                    size={24}
-                    color="black"
-                  />
-                </Pressable>
-              ))}
-
               <RNText style={styles.modalText}>Paid By</RNText>
               {members.map((member, index) => (
                 <Pressable
@@ -625,6 +673,27 @@ export default function GroupDetails({ route }) {
                   />
                 </Pressable>
               ))}
+              <RNText style={styles.modalText}>Split Between</RNText>
+              {members
+                .filter((member) => member !== selectedPayer)
+                .map((member, index) => (
+                  <Pressable
+                    key={member}
+                    style={styles.memberSelect}
+                    onPress={() => handleSelectMember(member)}>
+                    <RNText>{member}</RNText>
+                    <Ionicons
+                      name={
+                        selectedMembers.includes(member)
+                          ? "checkbox"
+                          : "square-outline"
+                      }
+                      size={24}
+                      color="black"
+                    />
+                  </Pressable>
+                ))}
+
               <View
                 style={{
                   flexDirection: "row",
