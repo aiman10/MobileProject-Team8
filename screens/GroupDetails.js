@@ -527,35 +527,45 @@ export default function GroupDetails({ route }) {
 
       {activeScreen === "expenses" ? (
         <>
-          <TouchableOpacity
-            style={styles.filterButton}
-            onPress={() => setCategoryModalVisible(true)}>
-            <FontAwesome name="filter" size={24} color="black" />
-          </TouchableOpacity>
-          <FlatList
-            data={expenses}
-            renderItem={({ item }) => (
-              <Pressable onPress={() => gotToExpenseDetails(item.id)}>
-                <View style={styles.expenseItem}>
-                  <RNText style={styles.expenseTitle}>{item.title}</RNText>
-                  <RNText style={styles.expenseAmount}>
-                    {currencySymbols[groupCurrency.currency] || "$"}{" "}
-                    {item.amount.toFixed(2)}
-                  </RNText>
-                  <RNText style={styles.expenseDate}>
-                    {formatDate(item.date)}
-                  </RNText>
-                  <RNText style={styles.paidByText}>
-                    paid by {item.paidBy.substring(0, 10)}
-                  </RNText>
-                </View>
-              </Pressable>
-            )}
-            keyExtractor={(item) => item.id}
-          />
-          {(!expenses || expenses.length === 0) && (
-            <RNText>There are no expenses</RNText>
+          {expenses.length <= 0 ? (
+            <>
+              <RNText style={styles.expensesTitle}>There are no expenes</RNText>
+            </>
+          ) : (
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => setCategoryModalVisible(true)}>
+              <FontAwesome name="filter" size={24} color="black" />
+            </TouchableOpacity>
           )}
+          <View style={{ flex: 1 }}>
+            {/* Use flex: 1 to ensure the view takes up the full height available */}
+            <FlatList
+              data={expenses}
+              renderItem={({ item }) => (
+                <Pressable onPress={() => gotToExpenseDetails(item.id)}>
+                  <View style={styles.expenseItem}>
+                    <RNText style={styles.expenseTitle}>{item.title}</RNText>
+                    <RNText style={styles.expenseAmount}>
+                      {currencySymbols[groupCurrency.currency] || "$"}{" "}
+                      {item.amount.toFixed(2)}
+                    </RNText>
+                    <RNText style={styles.expenseDate}>
+                      {formatDate(item.date)}
+                    </RNText>
+                    <RNText style={styles.paidByText}>
+                      paid by {item.paidBy.substring(0, 10)}
+                    </RNText>
+                  </View>
+                </Pressable>
+              )}
+              keyExtractor={(item) => item.id}
+              // Additional properties for better performance on large lists
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={10}
+            />
+          </View>
         </>
       ) : (
         <>

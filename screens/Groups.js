@@ -93,8 +93,8 @@ export default function Groups({}) {
 
   useEffect(
     () => {
-      getCurrentUserName();
       fetchUserGroups();
+      getCurrentUserName();
       fetchCurrencies().then((data) => setCurrencies(data));
       navigation.setOptions({
         headerRight: () => (
@@ -131,7 +131,6 @@ export default function Groups({}) {
   );
 
   const fetchUserGroups = async () => {
-    //setIsLoading(true);
     try {
       const q = query(
         collection(db, USER_GROUPS_REF),
