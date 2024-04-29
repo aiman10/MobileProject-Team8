@@ -103,14 +103,6 @@ export default function GroupDetails({ route }) {
     },
   ];
 
-  const membersWithBalances = [
-    { name: "Member 1", balance: 25 },
-    { name: "Member 2", balance: -20 },
-    { name: "Member 3", balance: 50 },
-    { name: "Member 4", balance: -100 },
-    // ... other members
-  ];
-
   const maxAbsBalance = Math.max(
     ...memberBalances.map((member) => Math.abs(member.balance))
   );
