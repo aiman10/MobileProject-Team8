@@ -15,7 +15,6 @@ import styles from "../style/styles.js";
 import { auth } from "../firebase/Config";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { Picker } from "@react-native-picker/picker";
 import { set } from "firebase/database";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 

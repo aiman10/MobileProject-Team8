@@ -548,7 +548,7 @@ export default function GroupDetails({ route }) {
         </>
       ) : (
         <>
-          <View style={[{ marginBottom: 300 }, { marginTop: 10 }]}>
+          <View style={[styles.expenseMembersPage]}>
             <MemberBalanceGraph
               membersWithBalances={memberBalances}
               maxAbsBalance={maxAbsBalance}
@@ -734,7 +734,7 @@ export default function GroupDetails({ route }) {
                   onValueChange={(itemValue, itemIndex) =>
                     setSelectedCategory(itemValue)
                   }
-                  style={{ flex: 2, height: 50 }} // Adjust the style as needed
+                  style={styles.categoryPickerStyle} // Adjust the style as needed
                 >
                   {Object.entries(Categories).map(([key, value]) => (
                     <Picker.Item key={key} label={value} value={key} />

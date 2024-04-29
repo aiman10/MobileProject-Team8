@@ -449,10 +449,7 @@ export default function Groups({}) {
               }}>
               <Picker
                 selectedValue={currency}
-                style={{
-                  height: 50,
-                  width: "100%",
-                }}
+                style={styles.pickerStyle}
                 onValueChange={(itemValue, itemIndex) =>
                   setCurrency(itemValue)
                 }>
