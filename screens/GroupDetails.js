@@ -70,6 +70,12 @@ export default function GroupDetails({ route }) {
       onExpenseDeleted: fetchExpenses,
     });
   };
+  const gotToMemberExpenseDetails = (memberName) => {
+    navigation.navigate("MemberExpense", {
+      memberName: memberName,
+      groupId: groupId,
+    });
+  };
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [activeScreen, setActiveScreen] = useState("expenses");
   const [memberBalances, setMemberBalances] = useState([]);
@@ -179,12 +185,12 @@ export default function GroupDetails({ route }) {
       ([name, balance]) => ({ name, balance })
     );
 
-    console.log("****************************");
-    membersWithBalances.forEach((member, index) => {
-      console.log(
-        `Name: ${member.name}, Balance: ${member.balance.toFixed(2)}`
-      );
-    });
+    // console.log("****************************");
+    // membersWithBalances.forEach((member, index) => {
+    //   console.log(
+    //     `Name: ${member.name}, Balance: ${member.balance.toFixed(2)}`
+    //   );
+    // });
     //return membersWithBalances;
     setMemberBalances(membersWithBalances);
   };
@@ -425,7 +431,9 @@ export default function GroupDetails({ route }) {
             member.balance >= 0
               ? chartCenter - barHeight - 15 - additionalSpace // Move the name up if the bar is small
               : chartCenter + barHeight + 15 + additionalSpace; // Move the name down if the bar is small
-
+          const handlePress = () => {
+            gotToMemberExpenseDetails(member.name);
+          };
           return (
             <React.Fragment key={member.name}>
               <Rect
@@ -434,13 +442,15 @@ export default function GroupDetails({ route }) {
                 width={barWidth - 10}
                 height={Math.max(barHeight, minBarHeight)} // Ensure the bar is not too small
                 fill={fillColor}
+                onPress={handlePress}
               />
               <SvgText
                 x={barX + barWidth / 2}
                 y={textYInsideBar} // Adjusted for inside the bar
                 fontSize="13"
                 fill="black" // White text for better visibility inside the bar
-                textAnchor="middle">
+                textAnchor="middle"
+                onPress={handlePress}>
                 {`${member.balance.toFixed(0)} ${
                   currencySymbols[groupCurrency.currency] || "$"
                 }`}
@@ -450,7 +460,8 @@ export default function GroupDetails({ route }) {
                 y={nameY} // Name position above or below the bar, with dynamic spacing
                 fontSize="13"
                 fill="black"
-                textAnchor="middle">
+                textAnchor="middle"
+                onPress={handlePress}>
                 {member.name}
               </SvgText>
             </React.Fragment>

@@ -14,6 +14,7 @@ import { logout, signIn } from "./components/Auth";
 import LoadingGIF from "./components/Loading";
 import styles from "./style/styles.js";
 import UserSettings from "./screens/UserSettings";
+import MemberExpenseDetail from "./screens/MemberExpenseDetail";
 
 const Stack = createStackNavigator();
 
@@ -96,6 +97,14 @@ export default function App({}) {
           name="ExpenseDetails"
           component={ExpenseDetails}
         />
+        <Stack.Screen
+          options={{
+            headerStyle: {
+              backgroundColor: "#46467A",
+            },
+          }}
+          name="MemberExpense"
+          component={MemberExpenseDetail}></Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
