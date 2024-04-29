@@ -67,7 +67,6 @@ export default function GroupDetails({ route }) {
   const gotToExpenseDetails = (expenseId) => {
     navigation.navigate("ExpenseDetails", {
       expenseId: expenseId,
-      onExpenseDeleted: fetchExpenses,
     });
   };
   const gotToMemberExpenseDetails = (memberName) => {
