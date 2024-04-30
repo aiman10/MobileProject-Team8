@@ -101,6 +101,27 @@ export default function GroupDetails({ route }) {
         );
       },
     },
+    {
+      label: "Leave Group",
+      onPress: () => {
+        Alert.alert(
+          "Leave Group",
+          "Are you sure you want to leave this group?",
+          [
+            {
+              text: "Cancel",
+              onPress: () => setModalVisible(false),
+            },
+            {
+              text: "Leave",
+              onPress: () => {
+                leaveGroup(); // This needs to be modified to pass the groupId if necessary
+              },
+            },
+          ]
+        );
+      },
+    },
   ];
 
   const maxAbsBalance = Math.max(
@@ -207,6 +228,26 @@ export default function GroupDetails({ route }) {
       await deleteDoc(doc.ref);
     });
     navigation.navigate("Groups");
+  };
+
+  const leaveGroup = async (groupId) => {
+    try {
+      const q = query(
+        collection(db, USER_GROUPS_REF),
+        where("userId", "==", auth.currentUser.uid),
+        where("groupId", "==", groupId)
+      );
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach(async (doc) => {
+        await deleteDoc(doc.ref);
+      });
+  
+      Alert.alert("You have left the group.");
+      fetchUserGroups(); 
+    } catch (error) {
+      console.error("Error leaving group:", error);
+      Alert.alert("Failed to leave the group.");
+    }
   };
 
   const deleteGroupImage = async (imageUrl) => {
