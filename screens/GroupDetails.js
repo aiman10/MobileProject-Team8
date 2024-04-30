@@ -52,7 +52,9 @@ export default function GroupDetails({ route }) {
   const [expenseTitle, setExpenseTitle] = useState("");
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(
+    Object.keys(Categories)[0] || ""
+  );
   const [expenses, setExpenses] = useState([]);
   const [allExpenses, setAllExpenses] = useState([]);
   const [groupCurrency, setGroupCurrency] = useState("");
@@ -163,25 +165,21 @@ export default function GroupDetails({ route }) {
     return expensesData;
   };
 
-  //Very important function!
   const calculateMemberBalances = async () => {
     const expenses = await getExpensesByGroup();
     const memberBalances = {};
     expenses.forEach((expense, index) => {
       const { paidBy, amount, splitBetween } = expense;
-      // Initialize the payer in the memberBalances if they don't exist
+
       if (!memberBalances[paidBy]) {
         memberBalances[paidBy] = 0;
       }
-      // Determine how many ways the expense should be split
       const numberOfSplits = splitBetween.includes(paidBy)
         ? splitBetween.length
         : splitBetween.length + 1;
 
-      // Calculate the split amount
       const splitAmount = amount / numberOfSplits;
       memberBalances[paidBy] += splitAmount;
-      // Adjust each member's balance
       splitBetween.forEach((member) => {
         if (!memberBalances[member]) {
           memberBalances[member] = 0;
@@ -282,8 +280,6 @@ export default function GroupDetails({ route }) {
     setExpenses(expensesData);
     setAllExpenses(expensesData);
     calculateMemberBalances();
-    console.log("*****************************");
-    console.log("Stap 1: Expenses:", expensesData);
   };
 
   const createExpense = async () => {
@@ -297,10 +293,12 @@ export default function GroupDetails({ route }) {
       imageUri = await uploadImageToStorage(uploadImage, `expenses/${groupId}`);
     }
 
+    const expenseCategory = selectedCategory || Object.keys(Categories)[0];
+
     const expenseData = {
       amount: parseFloat(expenseAmount),
       title: expenseTitle,
-      category: selectedCategory,
+      category: expenseCategory,
       groupId: groupId,
       paidBy: selectedPayer, // Assuming the current user is paying TODO
       splitBetween: selectedMembers,
@@ -724,7 +722,7 @@ export default function GroupDetails({ route }) {
               <RNText
                 style={[
                   styles.sectionTitle,
-                  { textAlign: "center", marginBottom: -40 },
+                  { textAlign: "center", marginTop: -20 },
                 ]}>
                 Member Balances
               </RNText>

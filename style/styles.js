@@ -19,7 +19,7 @@ export default StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: prim3,
+    color: "black",
     paddingVertical: 20,
   },
   input: {
