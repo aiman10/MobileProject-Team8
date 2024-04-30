@@ -25,12 +25,15 @@ import {
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import DropdownMenu from "../components/DropdownMenu.js";
 import { Ionicons } from "@expo/vector-icons";
+import { set } from "firebase/database";
+import { currencySymbols } from "../constants/Currencies.js";
 
 export default function ExpenseDetails({ route }) {
   const { expenseId } = route.params;
   const [expenseDetails, setExpenseDetails] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [expenseCurrency, setExpenseCurrency] = useState("€"); // default currency is Euro [€]
   const navigation = useNavigation();
 
   const menuOptions = [
@@ -62,6 +65,8 @@ export default function ExpenseDetails({ route }) {
     const expenseSnap = await getDoc(expenseRef);
     if (expenseSnap.exists()) {
       setExpenseDetails(expenseSnap.data());
+      setExpenseCurrency(expenseSnap.data().currency);
+      //console.log("Document data:", expenseSnap.data().currency);
     } else {
       console.log("No such document!");
     }
@@ -108,11 +113,20 @@ export default function ExpenseDetails({ route }) {
       <View style={localStyles.headerContainer}>
         <Text style={localStyles.expenseTitle}>{expenseDetails.title}</Text>
         <Text style={localStyles.expenseAmount}>
-          € {expenseDetails.amount?.toFixed(2)}
+          {currencySymbols[expenseCurrency] || "€"}
+          {expenseDetails.amount?.toFixed(2)}
         </Text>
         <Text style={localStyles.paidByText}>
+          {currencySymbols[expenseCurrency] || "€"}{" "}
+          {expenseDetails.splitBetween
+            ? (
+                expenseDetails.amount /
+                (expenseDetails.splitBetween.length + 1)
+              ).toFixed(2)
+            : "Loading..."}{" "}
           Paid by {expenseDetails.paidBy}
         </Text>
+
         <Text style={localStyles.expenseDate}>
           {new Date(expenseDetails.date?.seconds * 1000).toLocaleDateString()}
         </Text>
@@ -137,13 +151,14 @@ export default function ExpenseDetails({ route }) {
         {expenseDetails.splitBetween?.map((participant) => (
           <View style={localStyles.participantItem} key={participant}>
             <Text style={localStyles.participantName}>
-              {participant}{" "}
+              {participant}
               {participant === expenseDetails.paidBy ? "(me)" : ""}
             </Text>
             <Text style={localStyles.participantAmount}>
-              €{" "}
+              {currencySymbols[expenseCurrency] || "€"}{" "}
               {(
-                expenseDetails.amount / expenseDetails.splitBetween.length
+                expenseDetails.amount /
+                (expenseDetails.splitBetween.length + 1)
               ).toFixed(2)}
             </Text>
           </View>

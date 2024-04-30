@@ -115,7 +115,7 @@ export default function GroupDetails({ route }) {
             {
               text: "Leave",
               onPress: () => {
-                leaveGroup(); // This needs to be modified to pass the groupId if necessary
+                // leaveGroup(); // TODO
               },
             },
           ]
@@ -241,9 +241,9 @@ export default function GroupDetails({ route }) {
       querySnapshot.forEach(async (doc) => {
         await deleteDoc(doc.ref);
       });
-  
+
       Alert.alert("You have left the group.");
-      fetchUserGroups(); 
+      fetchUserGroups();
     } catch (error) {
       console.error("Error leaving group:", error);
       Alert.alert("Failed to leave the group.");
