@@ -131,7 +131,6 @@ export default function Groups({}) {
   );
 
   const fetchUserGroups = async () => {
-    //setIsLoading(true);
     try {
       const q = query(
         collection(db, USER_GROUPS_REF),
@@ -162,7 +161,6 @@ export default function Groups({}) {
       const userRef = doc(db, USERS_REF, auth.currentUser.uid);
       const userSnapshot = await getDoc(userRef);
       if (userSnapshot.exists()) {
-        //console.log(userSnapshot.data().username);
         return userSnapshot.data().username;
       }
     } catch (error) {
@@ -189,7 +187,6 @@ export default function Groups({}) {
             `groupImages/${new Date().getTime()}`
           );
         }
-        //console.log("Image URL", imageUrl);
         const groupRef = await addDoc(collection(db, GROUPS_REF), {
           name: groupName,
           members: [currentUserName, ...memberUsernames],
@@ -478,6 +475,7 @@ export default function Groups({}) {
           </View>
         </View>
       </Modal>
+
       <Modal
         animationType="slide"
         transparent={true}
