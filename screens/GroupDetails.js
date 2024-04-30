@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
   Pressable,
   Alert,
   Button,
   TextInput,
   FlatList,
+  Text as RNText,
 } from "react-native";
 import styles from "../style/styles.js";
 import {
@@ -41,6 +41,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 import { all } from "axios";
 import { ScrollView } from "react-native-gesture-handler";
+import { Svg, Rect, Circle, Text as SvgText } from "react-native-svg";
 
 export default function GroupDetails({ route }) {
   const { groupId } = route.params;
@@ -66,10 +67,17 @@ export default function GroupDetails({ route }) {
   const gotToExpenseDetails = (expenseId) => {
     navigation.navigate("ExpenseDetails", {
       expenseId: expenseId,
-      onExpenseDeleted: fetchExpenses,
+    });
+  };
+  const gotToMemberExpenseDetails = (memberName) => {
+    navigation.navigate("MemberExpense", {
+      memberName: memberName,
+      groupId: groupId,
     });
   };
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [activeScreen, setActiveScreen] = useState("expenses");
+  const [memberBalances, setMemberBalances] = useState([]);
 
   const menuOptions = [
     {
@@ -116,6 +124,10 @@ export default function GroupDetails({ route }) {
     },
   ];
 
+  const maxAbsBalance = Math.max(
+    ...memberBalances.map((member) => Math.abs(member.balance))
+  );
+
   const fetchGroupDetails = async () => {
     const groupRef = doc(db, GROUPS_REF, groupId);
     const groupSnapshot = await getDoc(groupRef);
@@ -123,11 +135,76 @@ export default function GroupDetails({ route }) {
       setGroupName(groupSnapshot.data().name);
       setMembers(groupSnapshot.data().members);
       setGroupCurrency(groupSnapshot.data());
-      //console.log(groupCurrency.currency);
+      //console.log(groupSnapshot.data());
+      calculateMemberBalances();
       setSelectedCurrency(groupSnapshot.data().currency);
     } else {
       //Alert.alert("Group not found");
     }
+  };
+
+  const getExpensesByGroup = async () => {
+    const expensesQuery = query(
+      collection(db, "expenses"),
+      where("groupId", "==", groupId)
+    );
+    const querySnapshot = await getDocs(expensesQuery);
+    const expensesData = [];
+    querySnapshot.forEach((doc) => {
+      expensesData.push({ id: doc.id, ...doc.data() });
+    });
+
+    //filter expensedata only retreive paidby, amount, splitbetween
+    expensesData.map((expense) => {
+      const { paidBy, amount, splitBetween } = expense;
+      return { paidBy, amount, splitBetween };
+    });
+    //console.log("ExpensesData:", expensesData);
+    return expensesData;
+  };
+
+  //Very important function!
+  const calculateMemberBalances = async () => {
+    const expenses = await getExpensesByGroup();
+    const memberBalances = {};
+    expenses.forEach((expense, index) => {
+      const { paidBy, amount, splitBetween } = expense;
+      // Initialize the payer in the memberBalances if they don't exist
+      if (!memberBalances[paidBy]) {
+        memberBalances[paidBy] = 0;
+      }
+      // Determine how many ways the expense should be split
+      const numberOfSplits = splitBetween.includes(paidBy)
+        ? splitBetween.length
+        : splitBetween.length + 1;
+
+      // Calculate the split amount
+      const splitAmount = amount / numberOfSplits;
+      memberBalances[paidBy] += splitAmount;
+      // Adjust each member's balance
+      splitBetween.forEach((member) => {
+        if (!memberBalances[member]) {
+          memberBalances[member] = 0;
+        }
+
+        if (member !== paidBy) {
+          memberBalances[member] -= splitAmount;
+        }
+      });
+    });
+
+    const membersWithBalances = Object.entries(memberBalances).map(
+      ([name, balance]) => ({ name, balance })
+    );
+
+    // console.log("****************************");
+    // membersWithBalances.forEach((member, index) => {
+    //   console.log(
+    //     `Name: ${member.name}, Balance: ${member.balance.toFixed(2)}`
+    //   );
+    // });
+    //return membersWithBalances;
+    setMemberBalances(membersWithBalances);
   };
 
   const deleteGroup = async () => {
@@ -204,6 +281,7 @@ export default function GroupDetails({ route }) {
     expensesData.sort((a, b) => b.date.seconds - a.date.seconds);
     setExpenses(expensesData);
     setAllExpenses(expensesData);
+    calculateMemberBalances();
     //console.log("Stap 1: Expenses:", expenses);
   };
 
@@ -243,6 +321,8 @@ export default function GroupDetails({ route }) {
       setSelectedMembers([]);
       setSelectedCategory("");
       fetchExpenses();
+      setSelectedPayer("");
+      calculateMemberBalances();
     } catch (error) {
       console.error("Error adding expense", error);
       Alert.alert("Error", "There was an issue adding the expense.");
@@ -250,6 +330,9 @@ export default function GroupDetails({ route }) {
   };
 
   const handleSelectMember = (member) => {
+    if (member === selectedPayer) {
+      return; // Prevent adding the payer to the split list
+    }
     if (selectedMembers.includes(member)) {
       setSelectedMembers(selectedMembers.filter((m) => m !== member));
     } else {
@@ -347,6 +430,79 @@ export default function GroupDetails({ route }) {
     }
   };
 
+  const MemberBalanceGraph = ({ membersWithBalances, maxAbsBalance }) => {
+    // Constants for padding and graph dimensions
+    const svgPadding = 20; // Padding value can be adjusted as needed
+    const svgHeight = 200 + svgPadding * 2; // Increased SVG height to accommodate text
+    const svgWidth = 300; // SVG width
+    const barWidth = svgWidth / membersWithBalances.length; // Width of each bar
+    const chartCenter = svgHeight / 2; // Center line of the chart
+    const minBarHeight = 15; // Minimum height of the bar to determine spacing
+
+    return (
+      <Svg height={svgHeight} width={svgWidth}>
+        {membersWithBalances.map((member, index) => {
+          const barHeight =
+            (Math.abs(member.balance) / maxAbsBalance) *
+            (chartCenter - svgPadding);
+          const barX = barWidth * index;
+          const barY =
+            member.balance >= 0 ? chartCenter - barHeight : chartCenter;
+          const fillColor = member.balance >= 0 ? "#9ED6A5" : "#FFA593";
+          // Calculate if additional space is needed for the name based on the bar height
+          const additionalSpace = barHeight < minBarHeight ? 10 : 0;
+
+          // Adjusted textY for balance inside the bar
+          const textYInsideBar =
+            member.balance >= 0
+              ? barY + barHeight - 10 // For positive balance, near the bottom of the green bar
+              : barY + 20; // For negative balance, near the top of the red bar
+
+          // Keep the name position calculation as is and add additionalSpace if needed
+          const nameY =
+            member.balance >= 0
+              ? chartCenter - barHeight - 15 - additionalSpace // Move the name up if the bar is small
+              : chartCenter + barHeight + 15 + additionalSpace; // Move the name down if the bar is small
+          const handlePress = () => {
+            gotToMemberExpenseDetails(member.name);
+          };
+          return (
+            <React.Fragment key={member.name}>
+              <Rect
+                x={barX + 5}
+                y={barY}
+                width={barWidth - 10}
+                height={Math.max(barHeight, minBarHeight)} // Ensure the bar is not too small
+                fill={fillColor}
+                onPress={handlePress}
+              />
+              <SvgText
+                x={barX + barWidth / 2}
+                y={textYInsideBar} // Adjusted for inside the bar
+                fontSize="13"
+                fill="black" // White text for better visibility inside the bar
+                textAnchor="middle"
+                onPress={handlePress}>
+                {`${member.balance.toFixed(0)} ${
+                  currencySymbols[groupCurrency.currency] || "$"
+                }`}
+              </SvgText>
+              <SvgText
+                x={barX + barWidth / 2}
+                y={nameY} // Name position above or below the bar, with dynamic spacing
+                fontSize="13"
+                fill="black"
+                textAnchor="middle"
+                onPress={handlePress}>
+                {member.name}
+              </SvgText>
+            </React.Fragment>
+          );
+        })}
+      </Svg>
+    );
+  };
+
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -387,30 +543,73 @@ export default function GroupDetails({ route }) {
 
   return (
     <View style={[styles.container, { marginTop: -25 }]}>
-      <Text style={styles.title}>{groupName}</Text>
+      <RNText style={styles.title}>{groupName}</RNText>
+      <View style={styles.tabContainer}>
+        <Pressable
+          style={[styles.tab, activeScreen === "expenses" && styles.activeTab]}
+          onPress={() => setActiveScreen("expenses")}>
+          <RNText style={styles.tabText}>Expenses</RNText>
+        </Pressable>
+        <Pressable
+          style={[styles.tab, activeScreen === "members" && styles.activeTab]}
+          onPress={() => setActiveScreen("members")}>
+          <RNText style={styles.tabText}>Members</RNText>
+        </Pressable>
+      </View>
 
-      {(!members || members.length === 0) && (
-        <Text>No members in this group</Text>
-      )}
-      <FlatList
-        // style={{ marginBottom: -350 }}
-        data={members}
-        renderItem={({ item, index }) => (
-          <View style={{ flexDirection: "row" }}>
-            <Text>
-              {item}
-              {index < members.length - 1 ? ", " : ""}
-            </Text>
+      {activeScreen === "expenses" ? (
+        <>
+          {expenses.length <= 0 ? (
+            <>
+              <RNText style={styles.expensesTitle}>There are no expenes</RNText>
+            </>
+          ) : (
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => setCategoryModalVisible(true)}>
+              <FontAwesome name="filter" size={24} color="black" />
+            </TouchableOpacity>
+          )}
+          <View style={{ flex: 1 }}>
+            {/* Use flex: 1 to ensure the view takes up the full height available */}
+            <FlatList
+              data={expenses}
+              renderItem={({ item }) => (
+                <Pressable onPress={() => gotToExpenseDetails(item.id)}>
+                  <View style={styles.expenseItem}>
+                    <RNText style={styles.expenseTitle}>{item.title}</RNText>
+                    <RNText style={styles.expenseAmount}>
+                      {currencySymbols[groupCurrency.currency] || "$"}{" "}
+                      {item.amount.toFixed(2)}
+                    </RNText>
+                    <RNText style={styles.expenseDate}>
+                      {formatDate(item.date)}
+                    </RNText>
+                    <RNText style={styles.paidByText}>
+                      paid by {item.paidBy.substring(0, 10)}
+                    </RNText>
+                  </View>
+                </Pressable>
+              )}
+              keyExtractor={(item) => item.id}
+              // Additional properties for better performance on large lists
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={10}
+            />
           </View>
-        )}
-        keyExtractor={(item, index) => `${item}-${index}`}
-        horizontal={true}
-      />
-      <TouchableOpacity
-        style={styles.filterButton}
-        onPress={() => setCategoryModalVisible(true)}>
-        <FontAwesome name="filter" size={24} color="black" />
-      </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <View style={[styles.expenseMembersPage]}>
+            <MemberBalanceGraph
+              membersWithBalances={memberBalances}
+              maxAbsBalance={maxAbsBalance}
+            />
+          </View>
+        </>
+      )}
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -424,7 +623,7 @@ export default function GroupDetails({ route }) {
                 filterExpensesByCategory("All");
                 setCategoryModalVisible(false);
               }}>
-              <Text style={styles.textStyle}>All</Text>
+              <RNText style={styles.textStyle}>All</RNText>
             </TouchableOpacity>
             {Object.entries(Categories).map(([key, value]) => (
               <TouchableOpacity
@@ -434,45 +633,24 @@ export default function GroupDetails({ route }) {
                   filterExpensesByCategory(key);
                   setCategoryModalVisible(false);
                 }}>
-                <Text style={styles.textStyle}>{value}</Text>
+                <RNText style={styles.textStyle}>{value}</RNText>
               </TouchableOpacity>
             ))}
             <TouchableOpacity
               style={[styles.closeModalButton]}
               onPress={() => setCategoryModalVisible(false)}>
-              <Text style={styles.textStyle}>Close</Text>
+              <RNText style={styles.textStyle}>Close</RNText>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-      {(!expenses || expenses.length === 0) && (
-        <Text>There are no expenses</Text>
-      )}
-      <FlatList
-        data={expenses}
-        renderItem={({ item }) => (
-          <Pressable onPress={() => gotToExpenseDetails(item.id)}>
-            <View style={styles.expenseItem}>
-              <Text style={styles.expenseTitle}>{item.title}</Text>
-              <Text style={styles.expenseAmount}>
-                {currencySymbols[groupCurrency.currency] || "$"}{" "}
-                {item.amount.toFixed(2)}
-              </Text>
-              <Text style={styles.expenseDate}>{formatDate(item.date)}</Text>
-              <Text style={styles.paidByText}>
-                paid by {item.paidBy.substring(0, 10)}
-              </Text>
-            </View>
-          </Pressable>
-        )}
-        keyExtractor={(item) => item.id}
-      />
+
       <View style={styles.totalExpensesContainer}>
-        <Text style={styles.totalExpensesText}>Total Expenses:</Text>
-        <Text style={styles.totalExpensesText}>
+        <RNText style={styles.totalExpensesText}>Total Expenses:</RNText>
+        <RNText style={styles.totalExpensesText}>
           {currencySymbols[groupCurrency.currency] || "$"}
           {totalExpenses.toFixed(2)}
-        </Text>
+        </RNText>
       </View>
       <TouchableOpacity
         style={styles.roundButton}
@@ -492,17 +670,19 @@ export default function GroupDetails({ route }) {
                 <Pressable
                   style={[styles.modalButton2]}
                   onPress={cancelCreateExpense}>
-                  <Text style={[styles.modalButtonText, { color: "#D2042D" }]}>
+                  <RNText
+                    style={[styles.modalButtonText, { color: "#D2042D" }]}>
                     Cancel
-                  </Text>
+                  </RNText>
                 </Pressable>
-                <Text style={[{ marginTop: 15 }]}>New Expense</Text>
+                <RNText style={[{ marginTop: 15 }]}>New Expense</RNText>
                 <Pressable
                   style={[styles.modalButton2]}
                   onPress={createExpense}>
-                  <Text style={[styles.modalButtonText, { color: "#28A745" }]}>
+                  <RNText
+                    style={[styles.modalButtonText, { color: "#28A745" }]}>
                     Create
-                  </Text>
+                  </RNText>
                 </Pressable>
               </View>
               <TextInput
@@ -552,27 +732,7 @@ export default function GroupDetails({ route }) {
                   onChange={onDateChange}
                 />
               )}
-
-              <Text style={styles.modalText}>Split Between</Text>
-              {members.map((member, index) => (
-                <Pressable
-                  key={member}
-                  style={styles.memberSelect}
-                  onPress={() => handleSelectMember(member)}>
-                  <Text>{member}</Text>
-                  <Ionicons
-                    name={
-                      selectedMembers.includes(member)
-                        ? "checkbox"
-                        : "square-outline"
-                    }
-                    size={24}
-                    color="black"
-                  />
-                </Pressable>
-              ))}
-
-              <Text style={styles.modalText}>Paid By</Text>
+              <RNText style={styles.modalText}>Paid By</RNText>
               {members.map((member, index) => (
                 <Pressable
                   key={member}
@@ -581,7 +741,7 @@ export default function GroupDetails({ route }) {
                     selectedPayer === member && styles.selectedMember, // Add a style for the selected state
                   ]}
                   onPress={() => setSelectedPayer(member)}>
-                  <Text>{member}</Text>
+                  <RNText>{member}</RNText>
                   <Ionicons
                     name={
                       selectedPayer === member
@@ -593,6 +753,27 @@ export default function GroupDetails({ route }) {
                   />
                 </Pressable>
               ))}
+              <RNText style={styles.modalText}>Split Between</RNText>
+              {members
+                .filter((member) => member !== selectedPayer)
+                .map((member, index) => (
+                  <Pressable
+                    key={member}
+                    style={styles.memberSelect}
+                    onPress={() => handleSelectMember(member)}>
+                    <RNText>{member}</RNText>
+                    <Ionicons
+                      name={
+                        selectedMembers.includes(member)
+                          ? "checkbox"
+                          : "square-outline"
+                      }
+                      size={24}
+                      color="black"
+                    />
+                  </Pressable>
+                ))}
+
               <View
                 style={{
                   flexDirection: "row",
@@ -600,13 +781,13 @@ export default function GroupDetails({ route }) {
                   justifyContent: "space-between",
                   marginTop: 25,
                 }}>
-                <Text style={[{ flex: 1 }]}>Category:</Text>
+                <RNText style={[{ flex: 1 }]}>Category:</RNText>
                 <Picker
                   selectedValue={selectedCategory}
                   onValueChange={(itemValue, itemIndex) =>
                     setSelectedCategory(itemValue)
                   }
-                  style={{ flex: 2, height: 50 }} // Adjust the style as needed
+                  style={styles.categoryPickerStyle} // Adjust the style as needed
                 >
                   {Object.entries(Categories).map(([key, value]) => (
                     <Picker.Item key={key} label={value} value={key} />
@@ -626,11 +807,11 @@ export default function GroupDetails({ route }) {
                   styles.buttonDate,
                 ]}>
                 {({ pressed }) => (
-                  <Text style={styles.buttonTextDate}>
+                  <RNText style={styles.buttonTextDate}>
                     {pressed
                       ? `Selecting Date...`
                       : `${date.toLocaleDateString()}`}
-                  </Text>
+                  </RNText>
                 )}
               </Pressable>
               <View

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -105,23 +105,50 @@ export default function ExpenseDetails({ route }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{expenseDetails.title}</Text>
-      <Text style={styles.text}>
-        Amount: {expenseDetails.amount} {expenseDetails.currency}
-      </Text>
-      <Text style={styles.text}>Category: {expenseDetails.category}</Text>
-      <Text style={styles.text}>Description: {expenseDetails.description}</Text>
+      <View style={localStyles.headerContainer}>
+        <Text style={localStyles.expenseTitle}>{expenseDetails.title}</Text>
+        <Text style={localStyles.expenseAmount}>
+          € {expenseDetails.amount?.toFixed(2)}
+        </Text>
+        <Text style={localStyles.paidByText}>
+          Paid by {expenseDetails.paidBy}
+        </Text>
+        <Text style={localStyles.expenseDate}>
+          {new Date(expenseDetails.date?.seconds * 1000).toLocaleDateString()}
+        </Text>
 
-      {
-        //show button only if there is an image
-        expenseDetails.expenseImage && (
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => setModalVisible(true)}>
-            <Text style={styles.buttonText}>View Receipt</Text>
-          </TouchableOpacity>
-        )
-      }
+        {
+          //show button only if there is an image
+          expenseDetails.expenseImage && (
+            <TouchableOpacity
+              style={[styles.button, { marginLeft: 0 }]}
+              onPress={() => setModalVisible(true)}>
+              <Text style={styles.buttonText}>View Receipt</Text>
+            </TouchableOpacity>
+          )
+        }
+      </View>
+
+      <Text style={localStyles.participantHeader}>
+        For {expenseDetails.splitBetween?.length} participants, including me
+      </Text>
+
+      <View style={localStyles.participantList}>
+        {expenseDetails.splitBetween?.map((participant) => (
+          <View style={localStyles.participantItem} key={participant}>
+            <Text style={localStyles.participantName}>
+              {participant}{" "}
+              {participant === expenseDetails.paidBy ? "(me)" : ""}
+            </Text>
+            <Text style={localStyles.participantAmount}>
+              €{" "}
+              {(
+                expenseDetails.amount / expenseDetails.splitBetween.length
+              ).toFixed(2)}
+            </Text>
+          </View>
+        ))}
+      </View>
 
       <Modal
         animationType="slide"
@@ -145,3 +172,62 @@ export default function ExpenseDetails({ route }) {
     </View>
   );
 }
+
+const localStyles = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: "#E5E5E5",
+    width: "100%",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  expenseTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+  },
+  expenseAmount: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#000",
+    marginVertical: 5,
+  },
+  paidByText: {
+    fontSize: 16,
+    color: "#555",
+  },
+  expenseDate: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 10,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    marginTop: 10,
+  },
+  participantHeader: {
+    padding: 20,
+    fontSize: 16,
+  },
+  participantList: {
+    borderTopWidth: 1,
+    borderTopColor: "#ccc",
+    width: "100%",
+  },
+  participantItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  participantName: {
+    fontSize: 16,
+  },
+  participantAmount: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  // ... more styles as needed
+});

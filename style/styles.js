@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from "react-native";
+import { StyleSheet, Dimensions, Platform } from "react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -404,5 +404,56 @@ export default StyleSheet.create({
     fontSize: 16,
     marginBottom: 5,
     // add other styles as needed
+  },
+  tabContainer: {
+    flexDirection: "row",
+    paddingBottom: 25,
+  },
+  tab: {
+    flex: 1,
+    alignItems: "center",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "grey",
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: "navy", // Use your primary color here
+  },
+  tabText: {
+    fontWeight: "bold",
+    color: "grey", // Use your primary text color here
+  },
+  pickerStyle: {
+    ...Platform.select({
+      ios: {
+        marginBottom: 20,
+        height: 200,
+      },
+      android: {},
+    }),
+  },
+  categoryPickerStyle: {
+    ...Platform.select({
+      ios: {
+        flex: 2,
+      },
+      android: {
+        flex: 2,
+        height: 50,
+      },
+    }),
+  },
+  expenseMembersPage: {
+    ...Platform.select({
+      ios: {
+        marginTop: 65,
+        marginBottom: 300,
+      },
+      android: {
+        marginTop: 10,
+        marginBottom: 300,
+      },
+    }),
   },
 });
