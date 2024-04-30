@@ -130,7 +130,7 @@ export default function ExpenseDetails({ route }) {
       </View>
 
       <Text style={localStyles.participantHeader}>
-        For {expenseDetails.splitBetween?.length} participants, including me
+        For {expenseDetails.splitBetween?.length + 1} participants
       </Text>
 
       <View style={localStyles.participantList}>

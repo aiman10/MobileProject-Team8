@@ -46,6 +46,7 @@ import * as ImagePicker from "expo-image-picker";
 import { fetchCurrencies } from "../services/Currency.js";
 import { set } from "firebase/database";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ScrollView } from "react-native-gesture-handler";
 
 if (
   Platform.OS === "android" &&
@@ -385,92 +386,93 @@ export default function Groups({}) {
                 </Text>
               </Pressable>
             </View>
-
-            <Text style={styles.modalText}>New Group</Text>
-            <TextInput
-              placeholder="Group Name"
-              value={groupName}
-              onChangeText={setGroupName}
-              style={styles.modalInput}
-            />
-            <TextInput
-              placeholder="Description"
-              value={groupDescription}
-              onChangeText={setGroupDescription}
-              style={styles.modalInput}
-            />
-            <Text style={[styles.modalText, { marginTop: 15 }]}>Members</Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}>
+            <ScrollView>
+              <Text style={styles.modalText}>New Group</Text>
               <TextInput
-                placeholder="Add Member"
-                value={newMemberUsername}
-                onChangeText={setNewMemberUsername}
-                style={[styles.modalInput, { flex: 1, marginRight: 10 }]}
+                placeholder="Group Name"
+                value={groupName}
+                onChangeText={setGroupName}
+                style={styles.modalInput}
               />
-              <Pressable
-                style={[styles.modalButton3, { paddingHorizontal: 15 }]}
-                onPress={addMember}>
-                <Text style={styles.modalButtonText}>Add</Text>
-              </Pressable>
-            </View>
-
-            {memberUsernames.map((username, index) => (
+              <TextInput
+                placeholder="Description"
+                value={groupDescription}
+                onChangeText={setGroupDescription}
+                style={styles.modalInput}
+              />
+              <Text style={[styles.modalText, { marginTop: 15 }]}>Members</Text>
               <View
-                key={index}
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  marginVertical: 5,
+                  justifyContent: "space-between",
                 }}>
-                <Text style={{ marginRight: 10 }}>{username}</Text>
-                <Pressable onPress={() => removeMember(index)}>
-                  <Ionicons name="close-circle" size={24} color="red" />
+                <TextInput
+                  placeholder="Add Member"
+                  value={newMemberUsername}
+                  onChangeText={setNewMemberUsername}
+                  style={[styles.modalInput, { flex: 1, marginRight: 10 }]}
+                />
+                <Pressable
+                  style={[styles.modalButton3, { paddingHorizontal: 15 }]}
+                  onPress={addMember}>
+                  <Text style={styles.modalButtonText}>Add</Text>
                 </Pressable>
               </View>
-            ))}
 
-            <Pressable
-              style={[styles.modalButton, { alignSelf: "center" }]}
-              onPress={loadContacts}>
-              <Text style={styles.modalButtonText}>Import Contacts</Text>
-            </Pressable>
+              {memberUsernames.map((username, index) => (
+                <View
+                  key={index}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginVertical: 5,
+                  }}>
+                  <Text style={{ marginRight: 10 }}>{username}</Text>
+                  <Pressable onPress={() => removeMember(index)}>
+                    <Ionicons name="close-circle" size={24} color="red" />
+                  </Pressable>
+                </View>
+              ))}
 
-            <View
-              style={{
-                borderTopWidth: 1,
-                borderTopColor: "black",
-                marginTop: 50,
-              }}>
-              <Picker
-                selectedValue={currency}
-                style={styles.pickerStyle}
-                onValueChange={(itemValue, itemIndex) =>
-                  setCurrency(itemValue)
-                }>
-                {currencies.map((currency, index) => (
-                  <Picker.Item
-                    key={index}
-                    label={currency.label}
-                    value={currency.value}
-                  />
-                ))}
-              </Picker>
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginTop: 20,
-              }}>
-              <Button title="Upload Image" onPress={pickImage} />
-              <Button title="Take Photo" onPress={takePhoto} />
-            </View>
+              <Pressable
+                style={[styles.modalButton, { alignSelf: "center" }]}
+                onPress={loadContacts}>
+                <Text style={styles.modalButtonText}>Import Contacts</Text>
+              </Pressable>
+
+              <View
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: "black",
+                  marginTop: 50,
+                }}>
+                <Picker
+                  selectedValue={currency}
+                  style={styles.pickerStyle}
+                  onValueChange={(itemValue, itemIndex) =>
+                    setCurrency(itemValue)
+                  }>
+                  {currencies.map((currency, index) => (
+                    <Picker.Item
+                      key={index}
+                      label={currency.label}
+                      value={currency.value}
+                    />
+                  ))}
+                </Picker>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginTop: 20,
+                }}>
+                <Button title="Upload Image" onPress={pickImage} />
+                <Button title="Take Photo" onPress={takePhoto} />
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>

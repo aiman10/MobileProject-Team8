@@ -420,7 +420,7 @@ export default function GroupDetails({ route }) {
           // Keep the name position calculation as is and add additionalSpace if needed
           const nameY =
             member.balance >= 0
-              ? chartCenter - barHeight - 15 - additionalSpace // Move the name up if the bar is small
+              ? chartCenter - barHeight - 9 - additionalSpace // Move the name up if the bar is small
               : chartCenter + barHeight + 15 + additionalSpace; // Move the name down if the bar is small
           const handlePress = () => {
             gotToMemberExpenseDetails(member.name);
@@ -520,7 +520,14 @@ export default function GroupDetails({ route }) {
         <>
           {expenses.length <= 0 ? (
             <>
-              <RNText style={styles.expensesTitle}>There are no expenes</RNText>
+              <TouchableOpacity
+                style={styles.filterButton}
+                onPress={() => setCategoryModalVisible(true)}>
+                <FontAwesome name="filter" size={24} color="black" />
+              </TouchableOpacity>
+              <RNText style={styles.expensesTitle}>
+                There are no expenses
+              </RNText>
             </>
           ) : (
             <TouchableOpacity
@@ -530,7 +537,6 @@ export default function GroupDetails({ route }) {
             </TouchableOpacity>
           )}
           <View style={{ flex: 1 }}>
-            {/* Use flex: 1 to ensure the view takes up the full height available */}
             <FlatList
               data={expenses}
               renderItem={({ item }) => (
@@ -550,22 +556,21 @@ export default function GroupDetails({ route }) {
                   </View>
                 </Pressable>
               )}
-              keyExtractor={(item) => item.id}
-              // Additional properties for better performance on large lists
-              initialNumToRender={10}
-              maxToRenderPerBatch={10}
-              windowSize={10}
+              keyExtractor={(item) => item.id.toString()}
+              scrollEnabled={true}
             />
           </View>
         </>
       ) : (
         <>
-          <View style={[styles.expenseMembersPage]}>
-            <MemberBalanceGraph
-              membersWithBalances={memberBalances}
-              maxAbsBalance={maxAbsBalance}
-            />
-          </View>
+          <ScrollView>
+            <View style={[styles.expenseMembersPage]}>
+              <MemberBalanceGraph
+                membersWithBalances={memberBalances}
+                maxAbsBalance={maxAbsBalance}
+              />
+            </View>
+          </ScrollView>
         </>
       )}
 
@@ -576,25 +581,28 @@ export default function GroupDetails({ route }) {
         onRequestClose={() => setCategoryModalVisible(false)}>
         <View style={[styles.centeredView2]}>
           <View style={[styles.modalView]}>
-            <TouchableOpacity
-              style={styles.filterModalButton}
-              onPress={() => {
-                filterExpensesByCategory("All");
-                setCategoryModalVisible(false);
-              }}>
-              <RNText style={styles.textStyle}>All</RNText>
-            </TouchableOpacity>
-            {Object.entries(Categories).map(([key, value]) => (
+            <ScrollView>
               <TouchableOpacity
-                key={key}
                 style={styles.filterModalButton}
                 onPress={() => {
-                  filterExpensesByCategory(key);
+                  filterExpensesByCategory("All");
                   setCategoryModalVisible(false);
                 }}>
-                <RNText style={styles.textStyle}>{value}</RNText>
+                <RNText style={styles.textStyle}>All</RNText>
               </TouchableOpacity>
-            ))}
+
+              {Object.entries(Categories).map(([key, value]) => (
+                <TouchableOpacity
+                  key={key}
+                  style={styles.filterModalButton}
+                  onPress={() => {
+                    filterExpensesByCategory(key);
+                    setCategoryModalVisible(false);
+                  }}>
+                  <RNText style={styles.textStyle}>{value}</RNText>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
             <TouchableOpacity
               style={[styles.closeModalButton]}
               onPress={() => setCategoryModalVisible(false)}>

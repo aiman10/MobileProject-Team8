@@ -360,7 +360,7 @@ export default StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     margin: 10,
-    marginLeft: 300,
+    marginLeft: 270,
   },
 
   filterButtonText: {
@@ -452,6 +452,7 @@ export default StyleSheet.create({
       },
       android: {
         marginTop: 10,
+        paddingTop: 50,
         marginBottom: 300,
       },
     }),

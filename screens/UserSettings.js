@@ -206,7 +206,7 @@ export default function ProfileSettings({ navigation }) {
   };
 
   return (
-    <View style={[styles.container, { marginTop: -50 }]}>
+    <View style={[styles.container, { marginTop: -20 }]}>
       <Text style={styles.title}>Profile Settings</Text>
 
       <View style={styles.userInfoSection}>
