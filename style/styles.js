@@ -457,4 +457,9 @@ export default StyleSheet.create({
       },
     }),
   },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 10,
+  },
 });

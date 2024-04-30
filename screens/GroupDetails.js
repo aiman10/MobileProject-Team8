@@ -41,7 +41,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 import { all } from "axios";
 import { ScrollView } from "react-native-gesture-handler";
-import { Svg, Rect, Circle, Text as SvgText } from "react-native-svg";
+import { Svg, Rect, Circle, Text as SvgText, G, Path } from "react-native-svg";
 
 export default function GroupDetails({ route }) {
   const { groupId } = route.params;
@@ -282,7 +282,8 @@ export default function GroupDetails({ route }) {
     setExpenses(expensesData);
     setAllExpenses(expensesData);
     calculateMemberBalances();
-    //console.log("Stap 1: Expenses:", expenses);
+    console.log("*****************************");
+    console.log("Stap 1: Expenses:", expensesData);
   };
 
   const createExpense = async () => {
@@ -503,6 +504,120 @@ export default function GroupDetails({ route }) {
     );
   };
 
+  const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
+    var angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+    return {
+      x: centerX + radius * Math.cos(angleInRadians),
+      y: centerY + radius * Math.sin(angleInRadians),
+    };
+  };
+
+  const describeSector = (x, y, radius, startAngle, endAngle) => {
+    const start = polarToCartesian(x, y, radius, endAngle);
+    const end = polarToCartesian(x, y, radius, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return [
+      "M",
+      x,
+      y,
+      "L",
+      start.x,
+      start.y,
+      "A",
+      radius,
+      radius,
+      0,
+      largeArcFlag,
+      0,
+      end.x,
+      end.y,
+      "Z",
+    ].join(" ");
+  };
+
+  const CategorySpendingGraph = ({ expenses }) => {
+    const [categoryTotals, setCategoryTotals] = useState({});
+
+    useEffect(() => {
+      const totals = expenses.reduce((acc, curr) => {
+        const { category, amount } = curr;
+        acc[category] = (acc[category] || 0) + amount;
+        return acc;
+      }, {});
+      setCategoryTotals(totals);
+    }, [expenses]);
+
+    const totalSpent = Object.values(categoryTotals).reduce(
+      (acc, curr) => acc + curr,
+      0
+    );
+    const categories = Object.keys(categoryTotals);
+    let startAngle = 0;
+    const colors = [
+      "#1f77b4",
+      "#ff7f0e",
+      "#2ca02c",
+      "#d62728",
+      "#9467bd",
+      "#8c564b",
+    ];
+
+    return (
+      <View style={{ flexDirection: "row", alignItems: "center", padding: 20 }}>
+        <Svg height="200" width="200" viewBox="0 0 200 200">
+          {categories.map((category, index) => {
+            const sliceAmount = categoryTotals[category];
+            const sliceAngle = (sliceAmount / totalSpent) * 360;
+            const endAngle = startAngle + sliceAngle;
+            const path = describeSector(100, 100, 80, startAngle, endAngle);
+            const middleAngle = startAngle + sliceAngle / 2;
+            const { x, y } = polarToCartesian(100, 100, 60, middleAngle);
+            const percentage =
+              ((sliceAmount / totalSpent) * 100).toFixed(1) + "%";
+            startAngle = endAngle;
+
+            return (
+              <React.Fragment key={index}>
+                <Path d={path} fill={colors[index % colors.length]} />
+                <SvgText
+                  x={x}
+                  y={y}
+                  fill="white"
+                  fontSize="12"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                  alignmentBaseline="middle">
+                  {percentage}
+                </SvgText>
+              </React.Fragment>
+            );
+          })}
+        </Svg>
+        <View style={{ paddingLeft: 10 }}>
+          {categories.map((category, index) => (
+            <View
+              key={index}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: 2,
+              }}>
+              <View
+                style={{
+                  width: 16,
+                  height: 16,
+                  backgroundColor: colors[index % colors.length],
+                  marginRight: 5,
+                }}
+              />
+              <RNText>{category}</RNText>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  };
+
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -606,10 +721,29 @@ export default function GroupDetails({ route }) {
         <>
           <ScrollView>
             <View style={[styles.expenseMembersPage]}>
+              <RNText
+                style={[
+                  styles.sectionTitle,
+                  { textAlign: "center", marginBottom: -40 },
+                ]}>
+                Member Balances
+              </RNText>
               <MemberBalanceGraph
                 membersWithBalances={memberBalances}
                 maxAbsBalance={maxAbsBalance}
               />
+            </View>
+
+            <View
+              style={{ marginTop: -250, marginLeft: -20, marginBottom: 20 }}>
+              <RNText
+                style={[
+                  styles.sectionTitle,
+                  { textAlign: "center", marginTop: 10 },
+                ]}>
+                Category Spending
+              </RNText>
+              <CategorySpendingGraph expenses={expenses} />
             </View>
           </ScrollView>
         </>
@@ -699,7 +833,6 @@ export default function GroupDetails({ route }) {
                 onChangeText={setExpenseTitle}
                 style={styles.modalInput}
               />
-
               <View
                 style={{
                   flexDirection: "row",
